@@ -68,6 +68,19 @@ size_t line_count(Buffer *b) {
     return count;
 }
 
+/* line number starts from 0 */
+char *line_goto(Buffer *b, size_t n) {
+    size_t i;
+    char *line = NULL;
+
+    line = b->data;
+    for (i = 0; i < n; ++i) {
+        line = line_next(line);
+        if (line == NULL) return NULL;
+    }
+    return line;
+}
+
 /* ------------------------------------------------------------------------
 Move functions
 ------------------------------------------------------------------------- */
