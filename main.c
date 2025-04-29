@@ -6,9 +6,9 @@
 typedef struct Buffer Buffer;
 struct Buffer {
     char *data;
-    size_t line;
-    size_t col;
+    size_t line, col;
     size_t line_off;
+    size_t col_max;
 };
 
 /* ------------------------------------------------------------------------
@@ -60,6 +60,13 @@ char *line_next(char *start) {
     else return cur;
 }
 
+size_t line_len(char *line) {
+    size_t len = 0;
+
+    while (line[len] != '\0' && line[len] != '\n') len++;
+    return len;
+}
+
 size_t line_count(Buffer *b) {
     char *cur = NULL;
     size_t count = 0;
@@ -71,15 +78,15 @@ size_t line_count(Buffer *b) {
 
 /* line number starts from 0 */
 char *line_goto(Buffer *b, size_t n) {
-    size_t i;
-    char *line = NULL;
+    size_t i = 0;
+    char *lp = NULL;
 
-    line = b->data;
+    lp = b->data;
     for (i = 0; i < n; ++i) {
-        line = line_next(line);
-        if (line == NULL) return NULL;
+        lp = line_next(lp);
+        if (lp == NULL) return NULL;
     }
-    return line;
+    return lp;
 }
 
 /* ------------------------------------------------------------------------
@@ -87,11 +94,56 @@ Move functions
 ------------------------------------------------------------------------- */
 
 void move_down(Buffer *b) {
-    if (b->line < line_count(b)) b->line++;
+    if (b->line < line_count(b)) {
+        char *lp = NULL;
+        size_t len = 0;
+
+        b->line++;
+
+        lp = line_goto(b, b->line);
+        len = line_len(lp);
+        if (len < b->col_max) {
+            b->col = len;
+        } else {
+            b->col = b->col_max;
+        }
+    }
 }
 
 void move_up(Buffer *b) {
-    if (b->line > 0) b->line--;
+    if (b->line > 0) {
+        char *lp = NULL;
+        size_t len = 0;
+
+        b->line--;
+
+        lp = line_goto(b, b->line);
+        len = line_len(lp);
+        if (len < b->col_max) {
+            b->col = len;
+        } else {
+            b->col = b->col_max;
+        }
+    }
+}
+
+void move_right(Buffer *b) {
+    char *lp = NULL;
+    size_t len = 0;
+
+    lp = line_goto(b, b->line);
+    len = line_len(lp);
+    if (b->col < len) {
+        b->col++;
+        b->col_max = b->col;
+    }
+}
+
+void move_left(Buffer *b) {
+    if (b->col > 0) {
+        b->col--;
+        b->col_max = b->col;
+    }
 }
 
 /* ------------------------------------------------------------------------
@@ -110,12 +162,12 @@ void render_end(void) {
 }
 
 void render(Buffer *b) {
-    char *cur = NULL;
+    char *lp = NULL;
 
-    cur = line_goto(b, b->line_off);
+    lp = line_goto(b, b->line_off);
 
     erase();
-    mvaddstr(0, 0, cur);
+    mvaddstr(0, 0, lp);
     move(b->line - b->line_off, b->col);
     refresh();
 }
@@ -150,8 +202,10 @@ int main(int argc, char **argv) {
         c = getch();
         switch (c) {
             case 'q': should_close = true; break;
-            case 'j': move_down(b); break;
-            case 'k': move_up(b); break;
+            case 'j': move_down(b);        break;
+            case 'k': move_up(b);          break;
+            case 'l': move_right(b);       break;
+            case 'h': move_left(b);        break;
         }
     }
 
