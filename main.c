@@ -8,6 +8,7 @@ struct Buffer {
     char *data;
     size_t line;
     size_t col;
+    size_t line_off;
 };
 
 /* ------------------------------------------------------------------------
@@ -109,9 +110,26 @@ void render_end(void) {
 }
 
 void render(Buffer *b) {
+    char *cur = NULL;
+
+    cur = line_goto(b, b->line_off);
+
+    erase();
+    mvaddstr(0, 0, cur);
+    move(b->line - b->line_off, b->col);
     refresh();
-    mvaddstr(0, 0, b->data);
-    move(b->line, b->col);
+}
+
+void render_offset_adjust(Buffer *b) {
+    long int rel_line = 0;
+
+    rel_line = b->line - b->line_off;
+
+    if (rel_line < 0) {
+        b->line_off += rel_line;
+    } else if (rel_line > LINES - 1) {
+        b->line_off += rel_line - (LINES - 1);
+    }
 }
 
 int main(int argc, char **argv) {
@@ -126,6 +144,7 @@ int main(int argc, char **argv) {
     while (!should_close) {
         int c = 0;
 
+        render_offset_adjust(b);
         render(b);
 
         c = getch();
