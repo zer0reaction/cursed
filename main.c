@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TAB_SPACES 4
+
 enum Buffer_Mode {
     NORMAL, INSERT
 };
@@ -317,8 +319,12 @@ int main(int argc, char **argv) {
             }
         } else if (b->mode == INSERT) {
             switch (c) {
-                case '': b->mode = NORMAL; break;
-                case '': delete_char(b);   break;
+                case 27: b->mode = NORMAL; break;
+                case 127: delete_char(b);   break;
+                case 9: {
+                    int i = 0;
+                    for (i = 0; i < TAB_SPACES; ++i) insert_char(b, ' ');
+                } break;
                 default: insert_char(b, c);
             }
         }
