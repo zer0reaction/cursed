@@ -76,6 +76,7 @@ Buffer *buf_open(const char *path) {
 
     fp = fopen(path, "r");
     if (fp == NULL) {
+        /* TODO this should be buf_create_empty */
         return buf_create_new_file(path);
     } else {
         fclose(fp);
@@ -339,9 +340,9 @@ void render(Buffer *b) {
     lp = line_goto(b, b->line_off);
 
     if (b->mode == INSERT) {
-        sprintf(status, "insert, %s", b->path);
+        sprintf(status, "[insert] %s", b->path);
     } else if (b->mode == NORMAL) {
-        sprintf(status, "normal, %s", b->path);
+        sprintf(status, "[normal] %s", b->path);
     }
     if (!(b->saved)) strcat(status, "*");
 
