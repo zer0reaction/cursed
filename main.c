@@ -342,7 +342,7 @@ void render(Buffer *b) {
     if (b->mode == INSERT) {
         sprintf(status, "[insert] %s", b->path);
     } else if (b->mode == NORMAL) {
-        sprintf(status, "[normal] %s", b->path);
+        sprintf(status, "%s", b->path);
     }
     if (!(b->saved)) strcat(status, "*");
 
