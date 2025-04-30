@@ -14,6 +14,7 @@ typedef struct Buffer Buffer;
 struct Buffer {
     char *data;
     char *path;
+    bool saved;
     Buffer_Mode mode;
     size_t line, col;
     size_t line_off;
@@ -51,6 +52,8 @@ Buffer *buf_create_from_file(const char *path) {
     b->path = malloc(strlen(path) + 1);
     strcpy(b->path, path);
 
+    b->saved = true;
+
     fclose(fp);
     return b;
 }
@@ -62,6 +65,7 @@ void buf_save(Buffer *b) {
     len = strlen(b->data);
     fp = fopen(b->path, "w");
     fwrite(b->data, 1, len, fp);
+    b->saved = true;
     fclose(fp);
 }
 
@@ -80,6 +84,8 @@ void buf_append_newline_maybe(Buffer *b) {
         b->data[len] = '\n';
         b->data[len + 1] = '\0';
     }
+
+    b->saved = false;
 }
 
 size_t buf_get_current_pos(Buffer *b) {
@@ -221,6 +227,8 @@ void insert_char(Buffer *b, char c) {
         b->col++;
         b->col_max = b->col;
     }
+
+    b->saved = false;
 }
 
 void delete_char(Buffer *b) {
@@ -250,11 +258,16 @@ void delete_char(Buffer *b) {
         b->col = b->col_max = prev_line_len;
         b->line--;
     }
+
+    b->saved = false;
 }
 
 /* ------------------------------------------------------------------------
 Render functions
 ------------------------------------------------------------------------- */
+
+#define HEIGHT (LINES - 1)
+#define WIDTH (COLS)
 
 void render_init(void) {
     initscr();
@@ -269,12 +282,28 @@ void render_end(void) {
 
 void render(Buffer *b) {
     char *lp = NULL;
+    char status[128] = {0};
+
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
     lp = line_goto(b, b->line_off);
 
+    if (b->mode == INSERT) {
+        sprintf(status, "insert, %s", b->path);
+    } else if (b->mode == NORMAL) {
+        sprintf(status, "normal, %s", b->path);
+    }
+    if (!(b->saved)) strcat(status, "*");
+
     erase();
-    mvaddstr(0, 0, lp);
-    move(b->line - b->line_off, b->col);
+
+    attron(COLOR_PAIR(1));
+    mvaddstr(0, 0, status);
+    attroff(COLOR_PAIR(1));
+
+    mvaddstr(1, 0, lp);
+    move(b->line - b->line_off + 1, b->col);
     refresh();
 }
 
@@ -285,8 +314,8 @@ void render_offset_adjust(Buffer *b) {
 
     if (rel_line < 0) {
         b->line_off += rel_line;
-    } else if (rel_line > LINES - 1) {
-        b->line_off += rel_line - (LINES - 1);
+    } else if (rel_line > HEIGHT - 1) {
+        b->line_off += rel_line - (HEIGHT - 1);
     }
 }
 
