@@ -11,6 +11,7 @@ typedef enum Buffer_Mode Buffer_Mode;
 typedef struct Buffer Buffer;
 struct Buffer {
     char *data;
+    char *path;
     Buffer_Mode mode;
     size_t line, col;
     size_t line_off;
@@ -45,11 +46,26 @@ Buffer *buf_from_file(const char *path) {
     fread(b->data, 1, size, fp);
     b->data[size] = '\0';
 
+    b->path = malloc(strlen(path) + 1);
+    strcpy(b->path, path);
+
+    fclose(fp);
     return b;
+}
+
+void buf_save(Buffer *b) {
+    FILE *fp = NULL;
+    size_t len = 0;
+
+    len = strlen(b->data);
+    fp = fopen(b->path, "w");
+    fwrite(b->data, 1, len, fp);
+    fclose(fp);
 }
 
 void buf_kill(Buffer *b) {
     free(b->data);
+    free(b->path);
     free(b);
 }
 
@@ -278,6 +294,7 @@ int main(int argc, char **argv) {
 
     if (argc != 2) return 1;
     b = buf_from_file(argv[1]);
+    if (b == NULL) return 1;
 
     render_init();
 
@@ -296,6 +313,7 @@ int main(int argc, char **argv) {
                 case 'k': move_up(b);          break;
                 case 'l': move_right(b);       break;
                 case 'h': move_left(b);        break;
+                case 's': buf_save(b);         break;
             }
         } else if (b->mode == INSERT) {
             switch (c) {
