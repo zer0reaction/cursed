@@ -27,7 +27,7 @@ char *line_goto(Buffer *b, size_t n);
 Buffer functions
 ------------------------------------------------------------------------- */
 
-Buffer *buf_from_file(const char *path) {
+Buffer *buf_create_from_file(const char *path) {
     Buffer *b = NULL;
     size_t size = 0;
     FILE *fp = NULL;
@@ -75,7 +75,7 @@ void buf_append_newline_maybe(Buffer *b) {
     size_t len = 0;
 
     len = strlen(b->data);
-    if (b->data[len - 1] != '\n') {
+    if (len == 0 || b->data[len - 1] != '\n') {
         b->data = realloc(b->data, len + 2);
         b->data[len] = '\n';
         b->data[len + 1] = '\0';
@@ -295,7 +295,7 @@ int main(int argc, char **argv) {
     bool should_close = false;
 
     if (argc != 2) return 1;
-    b = buf_from_file(argv[1]);
+    b = buf_create_from_file(argv[1]);
     if (b == NULL) return 1;
 
     render_init();
@@ -317,7 +317,8 @@ int main(int argc, char **argv) {
                 case 'h': move_left(b);        break;
                 case 's': buf_save(b);         break;
             }
-        } else if (b->mode == INSERT) {
+        /* only supporting ASCII for now */
+        } else if (b->mode == INSERT && (c >= 0 && c <= 127)) {
             switch (c) {
                 case 27: b->mode = NORMAL; break;
                 case 127: delete_char(b);   break;
