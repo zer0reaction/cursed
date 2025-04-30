@@ -3,9 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+enum Buffer_Mode {
+    NORMAL, INSERT
+};
+typedef enum Buffer_Mode Buffer_Mode;
+
 typedef struct Buffer Buffer;
 struct Buffer {
     char *data;
+    Buffer_Mode mode;
     size_t line, col;
     size_t line_off;
     size_t col_max;
@@ -244,15 +250,23 @@ int main(int argc, char **argv) {
 
         render_offset_adjust(b);
         render(b);
-
         c = getch();
-        switch (c) {
-            case 'q': should_close = true; break;
-            case 'j': move_down(b);        break;
-            case 'k': move_up(b);          break;
-            case 'l': move_right(b);       break;
-            case 'h': move_left(b);        break;
-            default: insert_char(b, (char)c);
+
+        if (b->mode == NORMAL) {
+            switch (c) {
+                case 'q': should_close = true; break;
+                case 'i': b->mode = INSERT;    break;
+                case 'j': move_down(b);        break;
+                case 'k': move_up(b);          break;
+                case 'l': move_right(b);       break;
+                case 'h': move_left(b);        break;
+            }
+        } else if (b->mode == INSERT) {
+            switch (c) {
+                case '': b->mode = NORMAL; break;
+                case '':                   break;
+                default: insert_char(b, c);
+            }
         }
     }
 
