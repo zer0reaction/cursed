@@ -44,6 +44,18 @@ void buf_kill(Buffer *b) {
     free(b);
 }
 
+void buf_append_newline_maybe(Buffer *b) {
+    size_t len = 0;
+
+    len = strlen(b->data);
+    if (b->data[len - 1] != '\n') {
+        b->data = realloc(b->data, len + 2);
+        b->data[len] = '\n';
+        b->data[len + 1] = '\0';
+    }
+}
+
+
 /* ------------------------------------------------------------------------
 Line functions
 ------------------------------------------------------------------------- */
@@ -147,6 +159,40 @@ void move_left(Buffer *b) {
 }
 
 /* ------------------------------------------------------------------------
+Edit functions
+------------------------------------------------------------------------- */
+
+void insert_char(Buffer *b, char c) {
+    size_t i = 0;
+    size_t size = 0;
+    size_t pos = 0;
+    char *ptr = NULL;
+
+    if (b->line == line_count(b)) {
+        buf_append_newline_maybe(b);
+    }
+
+    size = strlen(b->data) + 1;
+    b->data = realloc(b->data, size + 1);
+
+    ptr = line_goto(b, b->line) + b->col;
+    pos = ptr - b->data;
+
+    for (i = size; i > pos; --i) {
+        b->data[i] = b->data[i - 1];
+    }
+    b->data[pos] = c;
+
+    if (c == '\n') {
+        b->line++;
+        b->col_max = b->col = 0;
+    } else {
+        b->col++;
+        b->col_max = b->col;
+    }
+}
+
+/* ------------------------------------------------------------------------
 Render functions
 ------------------------------------------------------------------------- */
 
@@ -206,6 +252,7 @@ int main(int argc, char **argv) {
             case 'k': move_up(b);          break;
             case 'l': move_right(b);       break;
             case 'h': move_left(b);        break;
+            default: insert_char(b, (char)c);
         }
     }
 
