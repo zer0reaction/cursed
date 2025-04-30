@@ -17,6 +17,9 @@ struct Buffer {
     size_t col_max;
 };
 
+/* TODO add header file */
+char *line_goto(Buffer *b, size_t n);
+
 /* ------------------------------------------------------------------------
 Buffer functions
 ------------------------------------------------------------------------- */
@@ -61,6 +64,12 @@ void buf_append_newline_maybe(Buffer *b) {
     }
 }
 
+size_t buf_get_current_pos(Buffer *b) {
+    char *ptr;
+
+    ptr = line_goto(b, b->line) + b->col;
+    return ptr - b->data;
+}
 
 /* ------------------------------------------------------------------------
 Line functions
@@ -172,7 +181,6 @@ void insert_char(Buffer *b, char c) {
     size_t i = 0;
     size_t size = 0;
     size_t pos = 0;
-    char *ptr = NULL;
 
     if (b->line == line_count(b)) {
         buf_append_newline_maybe(b);
@@ -181,8 +189,7 @@ void insert_char(Buffer *b, char c) {
     size = strlen(b->data) + 1;
     b->data = realloc(b->data, size + 1);
 
-    ptr = line_goto(b, b->line) + b->col;
-    pos = ptr - b->data;
+    pos = buf_get_current_pos(b);
 
     for (i = size; i > pos; --i) {
         b->data[i] = b->data[i - 1];
@@ -195,6 +202,35 @@ void insert_char(Buffer *b, char c) {
     } else {
         b->col++;
         b->col_max = b->col;
+    }
+}
+
+void delete_char(Buffer *b) {
+    size_t i = 0;
+    size_t len = 0;
+    size_t pos = 0;
+    size_t prev_line_len = 0;
+
+    if (b->line == 0 && b->col == 0) return;
+
+    if (b->line > 0) {
+        prev_line_len = line_len(line_goto(b, b->line - 1));
+    }
+
+    pos = buf_get_current_pos(b);
+    len = strlen(b->data);
+
+    for (i = pos - 1; i < len - 1; ++i) {
+        b->data[i] = b->data[i + 1];
+    }
+    b->data[len - 1] = '\0';
+
+    if (b->col > 0) {
+        b->col--;
+        b->col_max = b->col;
+    } else {
+        b->col = b->col_max = prev_line_len;
+        b->line--;
     }
 }
 
@@ -264,7 +300,7 @@ int main(int argc, char **argv) {
         } else if (b->mode == INSERT) {
             switch (c) {
                 case '': b->mode = NORMAL; break;
-                case '':                   break;
+                case '': delete_char(b);   break;
                 default: insert_char(b, c);
             }
         }
