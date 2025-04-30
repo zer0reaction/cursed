@@ -28,6 +28,7 @@ char *line_goto(Buffer *b, size_t n);
 Buffer functions
 ------------------------------------------------------------------------- */
 
+/* TODO rename */
 Buffer *buf_create_from_file(const char *path) {
     Buffer *b = NULL;
     size_t size = 0;
@@ -56,6 +57,30 @@ Buffer *buf_create_from_file(const char *path) {
 
     fclose(fp);
     return b;
+}
+
+/* TODO rename */
+Buffer *buf_create_new_file(const char *path) {
+    FILE *fp = NULL;
+
+    fp = fopen(path, "w");
+    fclose(fp);
+    return buf_create_from_file(path);
+}
+
+Buffer *buf_open(const char *path) {
+    FILE *fp = NULL;
+
+    /* TODO is fopen the right way to do this? */
+    /*      and is this function abstraction even good? */
+
+    fp = fopen(path, "r");
+    if (fp == NULL) {
+        return buf_create_new_file(path);
+    } else {
+        fclose(fp);
+        return buf_create_from_file(path);
+    }
 }
 
 void buf_save(Buffer *b) {
@@ -352,8 +377,7 @@ int main(int argc, char **argv) {
     bool should_close = false;
 
     if (argc != 2) return 1;
-    b = buf_create_from_file(argv[1]);
-    if (b == NULL) return 1;
+    b = buf_open(argv[1]);
 
     render_init();
 
