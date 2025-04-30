@@ -217,6 +217,14 @@ void move_screen_up(Buffer *b, size_t screen_height) {
     b->line = (pos >= 0) ? pos : 0;
 }
 
+/* TODO rename */
+void move_screen_center(Buffer *b, size_t screen_height) {
+    long int off = 0;
+
+    off = b->line - (screen_height / 2);
+    b->line_off = (off >= 0) ? off : 0;
+}
+
 /* ------------------------------------------------------------------------
 Edit functions
 ------------------------------------------------------------------------- */
@@ -358,17 +366,22 @@ int main(int argc, char **argv) {
 
         if (b->mode == NORMAL) {
             switch (c) {
-                case 'q': should_close = true; break;
-                case 'i': b->mode = INSERT;    break;
-                case 'j': move_down(b);        break;
-                case 'k': move_up(b);          break;
-                case 'l': move_right(b);       break;
-                case 'h': move_left(b);        break;
-                case 's': buf_save(b);         break;
-                /* Ctrl+d */
-                case 4:   move_screen_down(b, HEIGHT); break;
-                /* Ctrl+u */
-                case 21:  move_screen_up(b, HEIGHT); break;
+                case 'q': should_close = true;           break;
+                case 'i': b->mode = INSERT;              break;
+                case 'j': move_down(b);                  break;
+                case 'k': move_up(b);                    break;
+                case 'l': move_right(b);                 break;
+                case 'h': move_left(b);                  break;
+                case 's': buf_save(b);                   break;
+                case 'f': move_screen_center(b, HEIGHT); break;
+                case 'n': {
+                    move_screen_down(b, HEIGHT);
+                    move_screen_center(b, HEIGHT);
+                } break;
+                case 'p': {
+                    move_screen_up(b, HEIGHT);
+                    move_screen_center(b, HEIGHT);
+                } break;
             }
         /* only supporting ASCII for now */
         } else if (b->mode == INSERT && (c >= 0 && c <= 127)) {
