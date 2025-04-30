@@ -197,6 +197,26 @@ void move_left(Buffer *b) {
     }
 }
 
+/* TODO rename */
+void move_screen_down(Buffer *b, unsigned short int screen_height) {
+    unsigned short int n = 0;
+    unsigned long int pos = 0;
+
+    n = screen_height / 2;
+    pos = b->line + n;
+    b->line = (pos > line_count(b)) ? line_count(b) : pos;
+}
+
+/* TODO rename */
+void move_screen_up(Buffer *b, size_t screen_height) {
+    unsigned short int n = 0;
+    long int pos = 0;
+
+    n = screen_height / 2;
+    pos = b->line - n;
+    b->line = (pos >= 0) ? pos : 0;
+}
+
 /* ------------------------------------------------------------------------
 Edit functions
 ------------------------------------------------------------------------- */
@@ -345,12 +365,23 @@ int main(int argc, char **argv) {
                 case 'l': move_right(b);       break;
                 case 'h': move_left(b);        break;
                 case 's': buf_save(b);         break;
+                /* Ctrl+d */
+                case 4:   move_screen_down(b, HEIGHT); break;
+                /* Ctrl+u */
+                case 21:  move_screen_up(b, HEIGHT); break;
             }
         /* only supporting ASCII for now */
         } else if (b->mode == INSERT && (c >= 0 && c <= 127)) {
             switch (c) {
-                case 27: b->mode = NORMAL; break;
-                case 127: delete_char(b);   break;
+                /* escape */
+                case 27:
+                    b->mode = NORMAL;
+                    break;
+                /* backspace */
+                case 127:
+                    delete_char(b);
+                    break;
+                /* tab */
                 case 9: {
                     int i = 0;
                     for (i = 0; i < TAB_SPACES; ++i) insert_char(b, ' ');
