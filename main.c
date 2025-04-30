@@ -169,37 +169,30 @@ char *line_goto(Buffer *b, size_t n) {
 Move functions
 ------------------------------------------------------------------------- */
 
+void move_adjust_col(Buffer *b) {
+    char *lp = NULL;
+    size_t len = 0;
+
+    lp = line_goto(b, b->line);
+    len = line_len(lp);
+    if (len < b->col_max) {
+        b->col = len;
+    } else {
+        b->col = b->col_max;
+    }
+}
+
 void move_down(Buffer *b) {
     if (b->line < line_count(b)) {
-        char *lp = NULL;
-        size_t len = 0;
-
         b->line++;
-
-        lp = line_goto(b, b->line);
-        len = line_len(lp);
-        if (len < b->col_max) {
-            b->col = len;
-        } else {
-            b->col = b->col_max;
-        }
+        move_adjust_col(b);
     }
 }
 
 void move_up(Buffer *b) {
     if (b->line > 0) {
-        char *lp = NULL;
-        size_t len = 0;
-
         b->line--;
-
-        lp = line_goto(b, b->line);
-        len = line_len(lp);
-        if (len < b->col_max) {
-            b->col = len;
-        } else {
-            b->col = b->col_max;
-        }
+        move_adjust_col(b);
     }
 }
 
@@ -230,6 +223,7 @@ void move_screen_down(Buffer *b, unsigned short int screen_height) {
     n = screen_height / 2;
     pos = b->line + n;
     b->line = (pos > line_count(b)) ? line_count(b) : pos;
+    move_adjust_col(b);
 }
 
 /* TODO rename */
@@ -240,6 +234,7 @@ void move_screen_up(Buffer *b, size_t screen_height) {
     n = screen_height / 2;
     pos = b->line - n;
     b->line = (pos >= 0) ? pos : 0;
+    move_adjust_col(b);
 }
 
 /* TODO rename */
@@ -248,6 +243,7 @@ void move_screen_center(Buffer *b, size_t screen_height) {
 
     off = b->line - (screen_height / 2);
     b->line_off = (off >= 0) ? off : 0;
+    move_adjust_col(b);
 }
 
 /* ------------------------------------------------------------------------
