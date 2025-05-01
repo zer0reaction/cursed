@@ -410,6 +410,14 @@ int main(int argc, char **argv) {
                     move_right(b);
                     b->mode = INSERT;
                 } break;
+                case 'I': {
+                    move_line_begin(b);
+                    b->mode = INSERT;
+                } break;
+                case 'A': {
+                    move_line_end(b);
+                    b->mode = INSERT;
+                } break;
                 case 'j': move_down(b);                  break;
                 case 'k': move_up(b);                    break;
                 case 'l': move_right(b);                 break;
