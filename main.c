@@ -389,6 +389,10 @@ int main(int argc, char **argv) {
             switch (c) {
                 case 'q': should_close = true;           break;
                 case 'i': b->mode = INSERT;              break;
+                case 'a': {
+                    move_right(b);
+                    b->mode = INSERT;
+                } break;
                 case 'j': move_down(b);                  break;
                 case 'k': move_up(b);                    break;
                 case 'l': move_right(b);                 break;
