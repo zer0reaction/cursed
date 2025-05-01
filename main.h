@@ -30,7 +30,6 @@ size_t line_len(char *line);
 size_t line_count(Buffer *b);
 char *line_goto(Buffer *b, size_t n);
 
-void move_adjust_col(Buffer *b);
 void move_down(Buffer *b);
 void move_up(Buffer *b);
 void move_right(Buffer *b);
@@ -41,12 +40,14 @@ void move_screen_down(Buffer *b, unsigned short int screen_height);
 void move_screen_up(Buffer *b, size_t screen_height);
 void move_screen_center(Buffer *b, size_t screen_height);
 
+void adjust_col(Buffer *b);
+void adjust_offset(Buffer *b, size_t screen_height);
+
 void insert_char(Buffer *b, char c);
 void delete_char(Buffer *b);
 
 void render_init(void);
 void render_end(void);
 void render(Buffer *b);
-void render_offset_adjust(Buffer *b);
 
 #endif /* MAIN_H_ */

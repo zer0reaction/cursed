@@ -106,6 +106,7 @@ void buf_append_newline_maybe(Buffer *b) {
     b->saved = false;
 }
 
+/* TODO rename, this is not buffer function */
 size_t buf_get_current_pos(Buffer *b) {
     char *ptr;
 
@@ -162,30 +163,17 @@ char *line_goto(Buffer *b, size_t n) {
 Move functions
 ------------------------------------------------------------------------- */
 
-void move_adjust_col(Buffer *b) {
-    char *lp = NULL;
-    size_t len = 0;
-
-    lp = line_goto(b, b->line);
-    len = line_len(lp);
-    if (len < b->col_max) {
-        b->col = len;
-    } else {
-        b->col = b->col_max;
-    }
-}
-
 void move_down(Buffer *b) {
     if (b->line < line_count(b)) {
         b->line++;
-        move_adjust_col(b);
+        adjust_col(b);
     }
 }
 
 void move_up(Buffer *b) {
     if (b->line > 0) {
         b->line--;
-        move_adjust_col(b);
+        adjust_col(b);
     }
 }
 
@@ -241,7 +229,7 @@ void move_screen_down(Buffer *b, unsigned short int screen_height) {
     n = screen_height / 2;
     pos = b->line + n;
     b->line = (pos > line_count(b)) ? line_count(b) : pos;
-    move_adjust_col(b);
+    adjust_col(b);
 }
 
 /* TODO rename */
@@ -252,7 +240,7 @@ void move_screen_up(Buffer *b, size_t screen_height) {
     n = screen_height / 2;
     pos = b->line - n;
     b->line = (pos >= 0) ? pos : 0;
-    move_adjust_col(b);
+    adjust_col(b);
 }
 
 /* TODO rename */
@@ -261,7 +249,37 @@ void move_screen_center(Buffer *b, size_t screen_height) {
 
     off = b->line - (screen_height / 2);
     b->line_off = (off >= 0) ? off : 0;
-    move_adjust_col(b);
+    adjust_col(b);
+}
+
+/* TODO rename */
+/* ------------------------------------------------------------------------
+Adjust functions
+------------------------------------------------------------------------- */
+
+void adjust_col(Buffer *b) {
+    char *lp = NULL;
+    size_t len = 0;
+
+    lp = line_goto(b, b->line);
+    len = line_len(lp);
+    if (len < b->col_max) {
+        b->col = len;
+    } else {
+        b->col = b->col_max;
+    }
+}
+
+void adjust_offset(Buffer *b, size_t screen_height) {
+    long int rel_line = 0;
+
+    rel_line = b->line - b->line_off;
+
+    if (rel_line < 0) {
+        b->line_off += rel_line;
+    } else if (rel_line > screen_height - 1) {
+        b->line_off += rel_line - (screen_height - 1);
+    }
 }
 
 /* ------------------------------------------------------------------------
@@ -374,18 +392,6 @@ void render(Buffer *b) {
     refresh();
 }
 
-void render_offset_adjust(Buffer *b) {
-    long int rel_line = 0;
-
-    rel_line = b->line - b->line_off;
-
-    if (rel_line < 0) {
-        b->line_off += rel_line;
-    } else if (rel_line > HEIGHT - 1) {
-        b->line_off += rel_line - (HEIGHT - 1);
-    }
-}
-
 int main(int argc, char **argv) {
     size_t i = 0;
     Buffer *b = NULL;
@@ -404,7 +410,7 @@ int main(int argc, char **argv) {
     while (!should_close) {
         int c = 0;
 
-        render_offset_adjust(b);
+        adjust_offset(b, HEIGHT);
         render(b);
         c = getch();
 
