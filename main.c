@@ -277,7 +277,7 @@ void adjust_offset(Buffer *b, size_t screen_height) {
 
     if (rel_line < 0) {
         b->line_off += rel_line;
-    } else if (rel_line > screen_height - 1) {
+    } else if (rel_line > (int)screen_height - 1) {
         b->line_off += rel_line - (screen_height - 1);
     }
 }
@@ -393,7 +393,7 @@ void render(Buffer *b) {
 }
 
 int main(int argc, char **argv) {
-    size_t i = 0;
+    int i = 0;
     Buffer *b = NULL;
     Buffer *buf_list[4] = {0};
     bool should_close = false;
