@@ -5,24 +5,7 @@
 
 #define TAB_SPACES 4
 
-enum Buffer_Mode {
-    NORMAL, INSERT
-};
-typedef enum Buffer_Mode Buffer_Mode;
-
-typedef struct Buffer Buffer;
-struct Buffer {
-    char *data;
-    char *path;
-    bool saved;
-    Buffer_Mode mode;
-    size_t line, col;
-    size_t line_off;
-    size_t col_max;
-};
-
-/* TODO add header file */
-char *line_goto(Buffer *b, size_t n);
+#include "main.h"
 
 /* ------------------------------------------------------------------------
 Buffer functions
