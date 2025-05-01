@@ -387,11 +387,17 @@ void render_offset_adjust(Buffer *b) {
 }
 
 int main(int argc, char **argv) {
+    size_t i = 0;
     Buffer *b = NULL;
+    Buffer *buf_list[4] = {0};
     bool should_close = false;
 
-    if (argc != 2) return 1;
-    b = buf_open(argv[1]);
+    if (argc == 1 || argc > 5) return 1;
+
+    for (i = 0; i < argc - 1; ++i) {
+        buf_list[i] = buf_open(argv[i + 1]);
+    }
+    b = buf_list[0];
 
     render_init();
 
@@ -434,6 +440,14 @@ int main(int argc, char **argv) {
                     move_screen_up(b, HEIGHT);
                     move_screen_center(b, HEIGHT);
                 } break;
+                /* Ctrl+j */
+                case 10: b = (buf_list[0] != NULL) ? buf_list[0] : b; break;
+                /* Ctrl+k */
+                case 11: b = (buf_list[1] != NULL) ? buf_list[1] : b; break;
+                /* Ctrl+l */
+                case 12: b = (buf_list[2] != NULL) ? buf_list[2] : b; break;
+                /* Ctrl+; */
+                case 59: b = (buf_list[3] != NULL) ? buf_list[3] : b; break;
             }
         /* only supporting ASCII for now */
         } else if (b->mode == INSERT && (c >= 0 && c <= 127)) {
@@ -457,6 +471,10 @@ int main(int argc, char **argv) {
     }
 
     render_end();
-    buf_kill(b);
+
+    for (i = 0; i < argc - 1; ++i) {
+        buf_kill(buf_list[i]);
+    }
+
     return 0;
 }
