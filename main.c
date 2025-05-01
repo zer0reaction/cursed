@@ -4,6 +4,9 @@
 #include <string.h>
 
 #define TAB_SPACES 4
+#define KILL_BUFFER_SIZE (8 * 1024)
+
+char kill_buffer[KILL_BUFFER_SIZE] = {0};
 
 #include "main.h"
 
@@ -347,6 +350,57 @@ void delete_char(Buffer *b) {
     b->saved = false;
 }
 
+void kill_buffer_clear(void) {
+    memset(kill_buffer, 0, sizeof(kill_buffer));
+}
+
+void kill_line(Buffer *b) {
+    size_t i = 0;
+    size_t len = 0;
+    size_t buf_len = 0;
+    size_t pos = 0;
+    size_t killed = 0;
+    char *cur_line = NULL;
+
+    buf_len = strlen(b->data);
+    pos = buf_get_current_pos(b);
+
+    cur_line = line_goto(b, b->line);
+    len = line_len(cur_line);
+    killed = (cur_line[len] != '\0') ? len + 1 : len;
+
+    strncat(kill_buffer, cur_line, killed);
+
+    for (i = pos; i < buf_len - killed; ++i) {
+        b->data[i] = b->data[i + killed];
+    }
+    b->data[buf_len - killed] = '\0';
+
+    b->data = realloc(b->data, buf_len - killed + 1);
+    b->saved = false;
+}
+
+void paste(Buffer *b) {
+    size_t i = 0;
+    size_t len = 0;
+    size_t buf_len = 0;
+    size_t pos = 0;
+
+    len = strlen(kill_buffer);
+    buf_len = strlen(b->data);
+    pos = buf_get_current_pos(b);
+
+    b->data = realloc(b->data, buf_len + len + 1);
+
+    for (i = buf_len + len - 1; i >= pos + len; --i) {
+        b->data[i] = b->data[i - len];
+    }
+    strncpy(b->data + pos, kill_buffer, len);
+    b->data[buf_len + len] = '\0';
+
+    /* TODO add moving cursor down */
+}
+
 /* ------------------------------------------------------------------------
 Render functions
 ------------------------------------------------------------------------- */
@@ -438,6 +492,9 @@ int main(int argc, char **argv) {
                 case '^': move_line_begin(b);            break;
                 case '$': move_line_end(b);              break;
                 case 'f': move_screen_center(b, HEIGHT); break;
+                case 'd': kill_line(b);                  break;
+                case 'c': kill_buffer_clear();           break;
+                case 'y': paste(b);                      break;
                 case 'n': {
                     move_screen_down(b, HEIGHT);
                     move_screen_center(b, HEIGHT);

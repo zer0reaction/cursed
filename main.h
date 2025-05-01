@@ -6,6 +6,7 @@ enum Buffer_Mode {
 };
 typedef enum Buffer_Mode Buffer_Mode;
 
+/* TODO add capacity and shrink if needed */
 typedef struct Buffer Buffer;
 struct Buffer {
     char *data;
@@ -45,6 +46,9 @@ void adjust_offset(Buffer *b, size_t screen_height);
 
 void insert_char(Buffer *b, char c);
 void delete_char(Buffer *b);
+void kill_buffer_clear(void);
+void kill_line(Buffer *b);
+void paste(Buffer *b);
 
 void render_init(void);
 void render_end(void);
