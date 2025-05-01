@@ -398,6 +398,8 @@ void paste(Buffer *b) {
     strncpy(b->data + pos, kill_buffer, len);
     b->data[buf_len + len] = '\0';
 
+    b->saved = false;
+
     /* TODO add moving cursor down */
 }
 
