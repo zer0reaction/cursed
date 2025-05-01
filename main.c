@@ -42,13 +42,21 @@ Buffer *buf_create_from_file(const char *path) {
     return b;
 }
 
-/* TODO rename */
-Buffer *buf_create_new_file(const char *path) {
-    FILE *fp = NULL;
+Buffer *buf_create_empty(const char *path) {
+    Buffer *b = NULL;
 
-    fp = fopen(path, "w");
-    fclose(fp);
-    return buf_create_from_file(path);
+    b = malloc(sizeof(Buffer));
+    memset(b, 0, sizeof(Buffer));
+
+    b->data = malloc(1);
+    b->data[0] = '\0';
+
+    b->path = malloc(strlen(path) + 1);
+    strcpy(b->path, path);
+
+    b->saved = false;
+
+    return b;
 }
 
 Buffer *buf_open(const char *path) {
@@ -59,8 +67,7 @@ Buffer *buf_open(const char *path) {
 
     fp = fopen(path, "r");
     if (fp == NULL) {
-        /* TODO this should be buf_create_empty */
-        return buf_create_new_file(path);
+        return buf_create_empty(path);
     } else {
         fclose(fp);
         return buf_create_from_file(path);
@@ -70,6 +77,8 @@ Buffer *buf_open(const char *path) {
 void buf_save(Buffer *b) {
     FILE *fp = NULL;
     size_t len = 0;
+
+    buf_append_newline_maybe(b);
 
     len = strlen(b->data);
     fp = fopen(b->path, "w");

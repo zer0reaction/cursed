@@ -18,7 +18,7 @@ struct Buffer {
 };
 
 Buffer *buf_create_from_file(const char *path);
-Buffer *buf_create_new_file(const char *path);
+Buffer *buf_create_empty(const char *path);
 Buffer *buf_open(const char *path);
 void buf_save(Buffer *b);
 void buf_kill(Buffer *b);
