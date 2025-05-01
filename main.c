@@ -199,6 +199,31 @@ void move_left(Buffer *b) {
     }
 }
 
+void move_line_begin(Buffer *b) {
+    size_t i = 0;
+    char *cur_line = NULL;
+    size_t len = 0;
+
+    cur_line = line_goto(b, b->line);
+    len = line_len(cur_line);
+
+    for (i = 0; i < len; ++i) {
+        if (cur_line[i] != ' ') {
+            b->col = b->col_max = i;
+            break;
+        }
+    }
+}
+
+void move_line_end(Buffer *b) {
+    char *cur_line = NULL;
+    size_t len = 0;
+
+    cur_line = line_goto(b, b->line);
+    len = line_len(cur_line);
+    b->col = b->col_max = len;
+}
+
 /* TODO rename */
 void move_screen_down(Buffer *b, unsigned short int screen_height) {
     unsigned short int n = 0;
@@ -381,6 +406,8 @@ int main(int argc, char **argv) {
                 case 'l': move_right(b);                 break;
                 case 'h': move_left(b);                  break;
                 case 's': buf_save(b);                   break;
+                case '^': move_line_begin(b);            break;
+                case '$': move_line_end(b);              break;
                 case 'f': move_screen_center(b, HEIGHT); break;
                 case 'n': {
                     move_screen_down(b, HEIGHT);

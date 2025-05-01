@@ -35,6 +35,8 @@ void move_down(Buffer *b);
 void move_up(Buffer *b);
 void move_right(Buffer *b);
 void move_left(Buffer *b);
+void move_line_begin(Buffer *b);
+void move_line_end(Buffer *b);
 void move_screen_down(Buffer *b, unsigned short int screen_height);
 void move_screen_up(Buffer *b, size_t screen_height);
 void move_screen_center(Buffer *b, size_t screen_height);
