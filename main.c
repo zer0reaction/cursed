@@ -358,26 +358,24 @@ void kill_line(Buffer *b) {
     size_t i = 0;
     size_t len = 0;
     size_t buf_len = 0;
-    size_t pos = 0;
     size_t killed = 0;
     char *cur_line = NULL;
 
     buf_len = strlen(b->data);
-    pos = buf_get_current_pos(b);
-
     cur_line = line_goto(b, b->line);
     len = line_len(cur_line);
     killed = (cur_line[len] != '\0') ? len + 1 : len;
 
     strncat(kill_buffer, cur_line, killed);
 
-    for (i = pos; i < buf_len - killed; ++i) {
+    for (i = cur_line - b->data; i < buf_len - killed; ++i) {
         b->data[i] = b->data[i + killed];
     }
     b->data[buf_len - killed] = '\0';
 
     b->data = realloc(b->data, buf_len - killed + 1);
     b->saved = false;
+    adjust_col(b);
 }
 
 void paste(Buffer *b) {
