@@ -365,48 +365,84 @@ int main(int argc, char **argv) {
 
         if (b->mode == NORMAL_MODE) {
             switch (c) {
-                case 'q': should_close = true;   break;
-                case 'i': b->mode = INSERT_MODE; break;
-                case 'a': {
+                case 'q':
+                    should_close = true;
+                    break;
+                case 'i':
+                    b->mode = INSERT_MODE;
+                    break;
+                case 'a':
                     move_right(b);
                     b->mode = INSERT_MODE;
-                } break;
-                case 'I': {
+                    break;
+                case 'I':
                     move_line_begin(b);
                     b->mode = INSERT_MODE;
-                } break;
-                case 'A': {
+                    break;
+                case 'A':
                     move_line_end(b);
                     b->mode = INSERT_MODE;
-                } break;
-                case 'j': move_down(b);                  break;
-                case 'k': move_up(b);                    break;
-                case 'l': move_right(b);                 break;
-                case 'h': move_left(b);                  break;
-                case 's': buf_save(b);                   break;
-                case '^': move_line_begin(b);            break;
-                case '$': move_line_end(b);              break;
-                case '0': move_line_left(b);             break;
-                case 'f': move_screen_center(b, HEIGHT); break;
-                case 'd': kill_line(b);                  break;
-                case 'c': clear_killed();                break;
-                case 'y': paste(b);                      break;
-                case 'n': {
+                    break;
+                case 'j':
+                    move_down(b);
+                    break;
+                case 'k':
+                    move_up(b);
+                    break;
+                case 'l':
+                    move_right(b);
+                    break;
+                case 'h':
+                    move_left(b);
+                    break;
+                case 's':
+                    buf_save(b);
+                    break;
+                case '^':
+                    move_line_begin(b);
+                    break;
+                case '$':
+                    move_line_end(b);
+                    break;
+                case '0':
+                    move_line_left(b);
+                    break;
+                case 'f':
+                    move_screen_center(b, HEIGHT);
+                    break;
+                case 'd':
+                    kill_line(b);
+                    break;
+                case 'c':
+                    clear_killed();
+                    break;
+                case 'y':
+                    paste(b);
+                    break;
+                case 'n':
                     move_screen_down(b, HEIGHT);
                     move_screen_center(b, HEIGHT);
-                } break;
-                case 'p': {
+                    break;
+                case 'p':
                     move_screen_up(b, HEIGHT);
                     move_screen_center(b, HEIGHT);
-                } break;
+                    break;
                 /* Ctrl+j */
-                case 10: b = (buf_list[0] != NULL) ? buf_list[0] : b; break;
+                case 10:
+                    b = (buf_list[0] != NULL) ? buf_list[0] : b;
+                    break;
                 /* Ctrl+k */
-                case 11: b = (buf_list[1] != NULL) ? buf_list[1] : b; break;
+                case 11:
+                    b = (buf_list[1] != NULL) ? buf_list[1] : b;
+                    break;
                 /* Ctrl+l */
-                case 12: b = (buf_list[2] != NULL) ? buf_list[2] : b; break;
+                case 12:
+                    b = (buf_list[2] != NULL) ? buf_list[2] : b;
+                    break;
                 /* Ctrl+; */
-                case 59: b = (buf_list[3] != NULL) ? buf_list[3] : b; break;
+                case 59:
+                    b = (buf_list[3] != NULL) ? buf_list[3] : b;
+                    break;
             }
         /* only supporting ASCII for now */
         } else if (b->mode == INSERT_MODE && (c >= 0 && c <= 127)) {
