@@ -366,6 +366,10 @@ int main(int argc, char **argv) {
         if (b->mode == NORMAL_MODE) {
             switch (c) {
                 case 'q':
+                    /* TODO check for all buffers to be saved */
+                    if (b->saved) should_close = true;
+                    break;
+                case 'Q':
                     should_close = true;
                     break;
                 case 'i':
