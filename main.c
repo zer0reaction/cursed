@@ -199,6 +199,11 @@ void move_left(Buffer *b) {
     }
 }
 
+/* TODO rename */
+void move_line_left(Buffer *b) {
+    b->col = b->col_max = 0;
+}
+
 void move_line_begin(Buffer *b) {
     size_t i = 0;
     char *cur_line = NULL;
@@ -492,6 +497,7 @@ int main(int argc, char **argv) {
                 case 's': buf_save(b);                   break;
                 case '^': move_line_begin(b);            break;
                 case '$': move_line_end(b);              break;
+                case '0': move_line_left(b);             break;
                 case 'f': move_screen_center(b, HEIGHT); break;
                 case 'd': kill_line(b);                  break;
                 case 'c': kill_buffer_clear();           break;
