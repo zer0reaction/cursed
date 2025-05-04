@@ -10,7 +10,7 @@ void append_newline_maybe(Buffer *b);
 char *line_next(char *start);
 size_t line_len(char *line);
 size_t line_count(char *start);
-char *line_goto(Buffer *b, size_t n);
+char *line_goto(char *start, size_t n);
 void adjust_col(Buffer *b);
 void adjust_offset(Buffer *b, size_t screen_height);
 void insert_substr(Buffer *b, size_t pos, char *str, size_t len);

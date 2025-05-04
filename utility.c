@@ -7,7 +7,7 @@
 size_t get_current_pos(Buffer *b) {
     char *ptr;
 
-    ptr = line_goto(b, b->line) + b->col;
+    ptr = line_goto(b->data, b->line) + b->col;
     return ptr - b->data;
 }
 
@@ -50,23 +50,21 @@ size_t line_count(char *start) {
 }
 
 /* line number starts from 0 */
-char *line_goto(Buffer *b, size_t n) {
+char *line_goto(char *start, size_t n) {
     size_t i = 0;
-    char *lp = NULL;
 
-    lp = b->data;
     for (i = 0; i < n; ++i) {
-        lp = line_next(lp);
-        if (lp == NULL) return NULL;
+        start = line_next(start);
+        if (start == NULL) return NULL;
     }
-    return lp;
+    return start;
 }
 
 void adjust_col(Buffer *b) {
     char *lp = NULL;
     size_t len = 0;
 
-    lp = line_goto(b, b->line);
+    lp = line_goto(b->data, b->line);
     len = line_len(lp);
     if (len < b->col_max) {
         b->col = len;

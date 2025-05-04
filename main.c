@@ -118,7 +118,7 @@ void move_right(Buffer *b) {
     char *lp = NULL;
     size_t len = 0;
 
-    lp = line_goto(b, b->line);
+    lp = line_goto(b->data, b->line);
     len = line_len(lp);
     if (b->col < len) {
         b->col++;
@@ -143,7 +143,7 @@ void move_line_begin(Buffer *b) {
     char *cur_line = NULL;
     size_t len = 0;
 
-    cur_line = line_goto(b, b->line);
+    cur_line = line_goto(b->data, b->line);
     len = line_len(cur_line);
 
     for (i = 0; i < len; ++i) {
@@ -158,7 +158,7 @@ void move_line_end(Buffer *b) {
     char *cur_line = NULL;
     size_t len = 0;
 
-    cur_line = line_goto(b, b->line);
+    cur_line = line_goto(b->data, b->line);
     len = line_len(cur_line);
     b->col = b->col_max = len;
 }
@@ -233,7 +233,7 @@ void delete_char(Buffer *b) {
     if (b->line == 0 && b->col == 0) return;
 
     if (b->line > 0) {
-        prev_line_len = line_len(line_goto(b, b->line - 1));
+        prev_line_len = line_len(line_goto(b->data, b->line - 1));
     }
 
     pos = get_current_pos(b);
@@ -265,7 +265,7 @@ void kill_line(Buffer *b) {
     size_t pos = 0;
     char *cur_line = NULL;
 
-    cur_line = line_goto(b, b->line);
+    cur_line = line_goto(b->data, b->line);
     len = line_len(cur_line);
     pos = cur_line - b->data;
     killed = (cur_line[len] != '\0') ? len + 1 : len;
@@ -277,15 +277,71 @@ void kill_line(Buffer *b) {
     adjust_col(b);
 }
 
+void clear_region(Buffer *b) {
+    b->reg_begin = b->reg_end = NULL;
+    b->reg_begin_line = b->reg_end_line = 0;
+}
+
+void begin_region(Buffer *b) {
+    char *cur = NULL;
+
+    cur = b->data + get_current_pos(b);
+    b->reg_begin = b->reg_end = cur;
+    b->reg_begin_line = b->line;
+    b->reg_begin_col = b->col;
+}
+
+void end_region(Buffer *b) {
+    char *cur = NULL;
+
+    cur = b->data + get_current_pos(b);
+    b->reg_end = cur;
+}
+
+void kill_region(Buffer *b) {
+    size_t reg_len = 0;
+
+    if (b->reg_begin == b->reg_end) return;
+
+    reg_len = b->reg_end - b->reg_begin;
+
+    strncat(kill_buffer, b->reg_begin, reg_len);
+    erase_substr(b, b->reg_begin - b->data, reg_len);
+
+    /* TODO is this stupid? */
+    b->line = b->reg_begin_line;
+    b->col = b->col_max = b->reg_begin_col;
+
+    b->saved = false;
+}
+
 void paste(Buffer *b) {
     size_t len = 0;
     size_t pos = 0;
+    size_t count = 0;
 
     len = strlen(kill_buffer);
     pos = get_current_pos(b);
+    count = line_count(kill_buffer);
+
+    if (len == 0) return;
 
     insert_substr(b, pos, kill_buffer, len);
-    b->line += line_count(kill_buffer);
+
+    if (kill_buffer[len - 1] == '\n') {
+        b->line += count;
+        b->col = b->col_max = 0;
+    } else if (count == 1) {
+        b->col += line_len(kill_buffer);
+        b->col_max = b->col;
+    } else {
+        char *lp = NULL;
+
+        lp = line_goto(kill_buffer, count - 1);
+
+        b->line += count - 1;
+        b->col = b->col_max = line_len(lp);
+    }
 
     b->saved = false;
 }
@@ -315,10 +371,12 @@ void render(Buffer *b) {
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
-    lp = line_goto(b, b->line_off);
+    lp = line_goto(b->data, b->line_off);
 
     if (b->mode == INSERT_MODE) {
         sprintf(status, "[insert] %s", b->path);
+    } else if (b->mode == REGION_MODE) {
+        sprintf(status, "[region] %s", b->path);
     } else if (b->mode == NORMAL_MODE) {
         sprintf(status, "%s", b->path);
     }
@@ -426,6 +484,10 @@ int main(int argc, char **argv) {
                     move_screen_up(b, HEIGHT);
                     move_screen_center(b, HEIGHT);
                     break;
+                case ' ':
+                    begin_region(b);
+                    b->mode = REGION_MODE;
+                    break;
                 /* Ctrl+j */
                 case 10:
                     b = (buf_list[0] != NULL) ? buf_list[0] : b;
@@ -461,6 +523,74 @@ int main(int argc, char **argv) {
                     for (i = 0; i < TAB_SPACES; ++i) insert_char(b, ' ');
                 } break;
                 default: insert_char(b, c);
+            }
+        } else if (b->mode == REGION_MODE) {
+            switch (c) {
+                /* escape */
+                case 27:
+                    clear_region(b);
+                    b->mode = NORMAL_MODE;
+                    break;
+                case ' ':
+                    end_region(b);
+                    b->mode = NORMAL_MODE;
+                    break;
+                case 'd':
+                    end_region(b);
+                    kill_region(b);
+                    b->mode = NORMAL_MODE;
+                    break;
+                case 'j':
+                    move_down(b);
+                    break;
+                case 'k':
+                    move_up(b);
+                    break;
+                case 'l':
+                    move_right(b);
+                    break;
+                case 'h':
+                    move_left(b);
+                    break;
+                case '^':
+                    move_line_begin(b);
+                    break;
+                case '$':
+                    move_line_end(b);
+                    break;
+                case '0':
+                    move_line_left(b);
+                    break;
+                case 'f':
+                    move_screen_center(b, HEIGHT);
+                    break;
+                case 'c':
+                    clear_killed();
+                    break;
+                case 'n':
+                    move_screen_down(b, HEIGHT);
+                    move_screen_center(b, HEIGHT);
+                    break;
+                case 'p':
+                    move_screen_up(b, HEIGHT);
+                    move_screen_center(b, HEIGHT);
+                    break;
+                /* Ctrl+j */
+                case 10:
+                    b = (buf_list[0] != NULL) ? buf_list[0] : b;
+                    break;
+                /* Ctrl+k */
+                case 11:
+                    b = (buf_list[1] != NULL) ? buf_list[1] : b;
+                    break;
+                /* Ctrl+l */
+                case 12:
+                    b = (buf_list[2] != NULL) ? buf_list[2] : b;
+                    break;
+                /* Ctrl+; */
+                case 59:
+                    b = (buf_list[3] != NULL) ? buf_list[3] : b;
+                    break;
             }
         }
     }
