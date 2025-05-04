@@ -275,7 +275,7 @@ void kill_line(Buffer *b) {
     killed = (cur_line[len] != '\0') ? len + 1 : len;
 
     strncat(kill_buffer, cur_line, killed);
-    erase_substr(b, pos, len);
+    erase_substr(b, pos, killed);
 
     b->saved = false;
     adjust_col(b);
