@@ -19,9 +19,8 @@ void append_newline_maybe(Buffer *b) {
         b->data = realloc(b->data, len + 2);
         b->data[len] = '\n';
         b->data[len + 1] = '\0';
+        b->saved = false;
     }
-
-    b->saved = false;
 }
 
 char *line_next(char *start) {
