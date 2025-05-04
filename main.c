@@ -3,18 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utility.h"
+#include "buffer.h"
+
 #define TAB_SPACES 4
-#define KILL_BUFFER_SIZE (8 * 1024)
+#define KILL_BUFFER_SIZE (1024 * 1024)
 
 char kill_buffer[KILL_BUFFER_SIZE] = {0};
-
-#include "main.h"
 
 /* ------------------------------------------------------------------------
 Buffer functions
 ------------------------------------------------------------------------- */
 
-/* TODO rename */
 Buffer *buf_create_from_file(const char *path) {
     Buffer *b = NULL;
     size_t size = 0;
@@ -81,7 +81,7 @@ void buf_save(Buffer *b) {
     FILE *fp = NULL;
     size_t len = 0;
 
-    buf_append_newline_maybe(b);
+    append_newline_maybe(b);
 
     len = strlen(b->data);
     fp = fopen(b->path, "w");
@@ -94,72 +94,6 @@ void buf_kill(Buffer *b) {
     free(b->data);
     free(b->path);
     free(b);
-}
-
-void buf_append_newline_maybe(Buffer *b) {
-    size_t len = 0;
-
-    len = strlen(b->data);
-    if (len == 0 || b->data[len - 1] != '\n') {
-        b->data = realloc(b->data, len + 2);
-        b->data[len] = '\n';
-        b->data[len + 1] = '\0';
-    }
-
-    b->saved = false;
-}
-
-/* TODO rename, this is not buffer function */
-size_t buf_get_current_pos(Buffer *b) {
-    char *ptr;
-
-    ptr = line_goto(b, b->line) + b->col;
-    return ptr - b->data;
-}
-
-/* ------------------------------------------------------------------------
-Line functions
-------------------------------------------------------------------------- */
-
-char *line_next(char *start) {
-    char *cur = NULL;
-
-    if (*start == '\0') return NULL;
-
-    cur = start;
-    while (*cur != '\n' && *cur != '\0') cur++;
-
-    if (*cur == '\n') return cur + 1;
-    else return cur;
-}
-
-size_t line_len(char *line) {
-    size_t len = 0;
-
-    while (line[len] != '\0' && line[len] != '\n') len++;
-    return len;
-}
-
-size_t line_count(Buffer *b) {
-    char *cur = NULL;
-    size_t count = 0;
-
-    cur = b->data;
-    while ((cur = line_next(cur)) != NULL) count++;
-    return count;
-}
-
-/* line number starts from 0 */
-char *line_goto(Buffer *b, size_t n) {
-    size_t i = 0;
-    char *lp = NULL;
-
-    lp = b->data;
-    for (i = 0; i < n; ++i) {
-        lp = line_next(lp);
-        if (lp == NULL) return NULL;
-    }
-    return lp;
 }
 
 /* ------------------------------------------------------------------------
@@ -260,38 +194,8 @@ void move_screen_center(Buffer *b, size_t screen_height) {
     adjust_col(b);
 }
 
-/* TODO rename */
 /* ------------------------------------------------------------------------
-Adjust functions
-------------------------------------------------------------------------- */
-
-void adjust_col(Buffer *b) {
-    char *lp = NULL;
-    size_t len = 0;
-
-    lp = line_goto(b, b->line);
-    len = line_len(lp);
-    if (len < b->col_max) {
-        b->col = len;
-    } else {
-        b->col = b->col_max;
-    }
-}
-
-void adjust_offset(Buffer *b, size_t screen_height) {
-    long int rel_line = 0;
-
-    rel_line = b->line - b->line_off;
-
-    if (rel_line < 0) {
-        b->line_off += rel_line;
-    } else if (rel_line > (int)screen_height - 1) {
-        b->line_off += rel_line - (screen_height - 1);
-    }
-}
-
-/* ------------------------------------------------------------------------
-Edit functions
+Editor functions
 ------------------------------------------------------------------------- */
 
 void insert_char(Buffer *b, char c) {
@@ -300,13 +204,13 @@ void insert_char(Buffer *b, char c) {
     size_t pos = 0;
 
     if (b->line == line_count(b)) {
-        buf_append_newline_maybe(b);
+        append_newline_maybe(b);
     }
 
     size = strlen(b->data) + 1;
     b->data = realloc(b->data, size + 1);
 
-    pos = buf_get_current_pos(b);
+    pos = get_current_pos(b);
 
     for (i = size; i > pos; --i) {
         b->data[i] = b->data[i - 1];
@@ -336,7 +240,7 @@ void delete_char(Buffer *b) {
         prev_line_len = line_len(line_goto(b, b->line - 1));
     }
 
-    pos = buf_get_current_pos(b);
+    pos = get_current_pos(b);
     len = strlen(b->data);
 
     for (i = pos - 1; i < len - 1; ++i) {
@@ -355,51 +259,36 @@ void delete_char(Buffer *b) {
     b->saved = false;
 }
 
-void kill_buffer_clear(void) {
+void clear_killed(void) {
     memset(kill_buffer, 0, sizeof(kill_buffer));
 }
 
 void kill_line(Buffer *b) {
-    size_t i = 0;
     size_t len = 0;
-    size_t buf_len = 0;
     size_t killed = 0;
+    size_t pos = 0;
     char *cur_line = NULL;
 
-    buf_len = strlen(b->data);
     cur_line = line_goto(b, b->line);
     len = line_len(cur_line);
+    pos = cur_line - b->data;
     killed = (cur_line[len] != '\0') ? len + 1 : len;
 
     strncat(kill_buffer, cur_line, killed);
+    erase_substr(b, pos, len);
 
-    for (i = cur_line - b->data; i < buf_len - killed; ++i) {
-        b->data[i] = b->data[i + killed];
-    }
-    b->data[buf_len - killed] = '\0';
-
-    b->data = realloc(b->data, buf_len - killed + 1);
     b->saved = false;
     adjust_col(b);
 }
 
 void paste(Buffer *b) {
-    size_t i = 0;
     size_t len = 0;
-    size_t buf_len = 0;
     size_t pos = 0;
 
     len = strlen(kill_buffer);
-    buf_len = strlen(b->data);
-    pos = buf_get_current_pos(b);
+    pos = get_current_pos(b);
 
-    b->data = realloc(b->data, buf_len + len + 1);
-
-    for (i = buf_len + len - 1; i >= pos + len; --i) {
-        b->data[i] = b->data[i - len];
-    }
-    strncpy(b->data + pos, kill_buffer, len);
-    b->data[buf_len + len] = '\0';
+    insert_substr(b, pos, kill_buffer, len);
 
     b->saved = false;
 
@@ -500,7 +389,7 @@ int main(int argc, char **argv) {
                 case '0': move_line_left(b);             break;
                 case 'f': move_screen_center(b, HEIGHT); break;
                 case 'd': kill_line(b);                  break;
-                case 'c': kill_buffer_clear();           break;
+                case 'c': clear_killed();                break;
                 case 'y': paste(b);                      break;
                 case 'n': {
                     move_screen_down(b, HEIGHT);
