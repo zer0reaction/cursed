@@ -279,7 +279,7 @@ void kill_line(Buffer *b) {
 
 void clear_region(Buffer *b) {
     b->reg_begin = b->reg_end = NULL;
-    b->reg_begin_line = b->reg_end_line = 0;
+    b->reg_begin_line = b->reg_begin_col = 0;
 }
 
 void begin_region(Buffer *b) {
