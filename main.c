@@ -322,9 +322,9 @@ void render(Buffer *b) {
 
     lp = line_goto(b, b->line_off);
 
-    if (b->mode == INSERT) {
+    if (b->mode == INSERT_MODE) {
         sprintf(status, "[insert] %s", b->path);
-    } else if (b->mode == NORMAL) {
+    } else if (b->mode == NORMAL_MODE) {
         sprintf(status, "%s", b->path);
     }
     if (!(b->saved)) strcat(status, "*");
@@ -363,21 +363,21 @@ int main(int argc, char **argv) {
         render(b);
         c = getch();
 
-        if (b->mode == NORMAL) {
+        if (b->mode == NORMAL_MODE) {
             switch (c) {
-                case 'q': should_close = true;           break;
-                case 'i': b->mode = INSERT;              break;
+                case 'q': should_close = true;   break;
+                case 'i': b->mode = INSERT_MODE; break;
                 case 'a': {
                     move_right(b);
-                    b->mode = INSERT;
+                    b->mode = INSERT_MODE;
                 } break;
                 case 'I': {
                     move_line_begin(b);
-                    b->mode = INSERT;
+                    b->mode = INSERT_MODE;
                 } break;
                 case 'A': {
                     move_line_end(b);
-                    b->mode = INSERT;
+                    b->mode = INSERT_MODE;
                 } break;
                 case 'j': move_down(b);                  break;
                 case 'k': move_up(b);                    break;
@@ -409,11 +409,11 @@ int main(int argc, char **argv) {
                 case 59: b = (buf_list[3] != NULL) ? buf_list[3] : b; break;
             }
         /* only supporting ASCII for now */
-        } else if (b->mode == INSERT && (c >= 0 && c <= 127)) {
+        } else if (b->mode == INSERT_MODE && (c >= 0 && c <= 127)) {
             switch (c) {
                 /* escape */
                 case 27:
-                    b->mode = NORMAL;
+                    b->mode = NORMAL_MODE;
                     break;
                 /* backspace */
                 case 127:

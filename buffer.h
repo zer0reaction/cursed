@@ -2,7 +2,7 @@
 #define BUFFER_H_
 
 enum Buffer_Mode {
-    NORMAL, INSERT
+    NORMAL_MODE, INSERT_MODE
 };
 typedef enum Buffer_Mode Buffer_Mode;
 
