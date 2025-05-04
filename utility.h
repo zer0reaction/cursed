@@ -9,7 +9,7 @@ size_t get_current_pos(Buffer *b);
 void append_newline_maybe(Buffer *b);
 char *line_next(char *start);
 size_t line_len(char *line);
-size_t line_count(Buffer *b);
+size_t line_count(char *start);
 char *line_goto(Buffer *b, size_t n);
 void adjust_col(Buffer *b);
 void adjust_offset(Buffer *b, size_t screen_height);

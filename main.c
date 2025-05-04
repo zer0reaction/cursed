@@ -101,7 +101,7 @@ Move functions
 ------------------------------------------------------------------------- */
 
 void move_down(Buffer *b) {
-    if (b->line < line_count(b)) {
+    if (b->line < line_count(b->data)) {
         b->line++;
         adjust_col(b);
     }
@@ -170,7 +170,7 @@ void move_screen_down(Buffer *b, unsigned short int screen_height) {
 
     n = screen_height / 2;
     pos = b->line + n;
-    b->line = (pos > line_count(b)) ? line_count(b) : pos;
+    b->line = (pos > line_count(b->data)) ? line_count(b->data) : pos;
     adjust_col(b);
 }
 
@@ -203,7 +203,7 @@ void insert_char(Buffer *b, char c) {
     size_t size = 0;
     size_t pos = 0;
 
-    if (b->line == line_count(b)) {
+    if (b->line == line_count(b->data)) {
         append_newline_maybe(b);
     }
 

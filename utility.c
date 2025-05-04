@@ -43,12 +43,10 @@ size_t line_len(char *line) {
     return len;
 }
 
-size_t line_count(Buffer *b) {
-    char *cur = NULL;
+size_t line_count(char *start) {
     size_t count = 0;
 
-    cur = b->data;
-    while ((cur = line_next(cur)) != NULL) count++;
+    while ((start = line_next(start)) != NULL) count++;
     return count;
 }
 
