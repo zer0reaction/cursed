@@ -97,7 +97,7 @@ void buf_kill(Buffer *b) {
 }
 
 /* ------------------------------------------------------------------------
-Move functions
+Editor functions
 ------------------------------------------------------------------------- */
 
 void move_down(Buffer *b) {
@@ -193,10 +193,6 @@ void move_screen_center(Buffer *b, size_t screen_height) {
     b->line_off = (off >= 0) ? off : 0;
     adjust_col(b);
 }
-
-/* ------------------------------------------------------------------------
-Editor functions
-------------------------------------------------------------------------- */
 
 void insert_char(Buffer *b, char c) {
     size_t i = 0;
