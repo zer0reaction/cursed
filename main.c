@@ -453,6 +453,7 @@ int main(int argc, char **argv) {
                     break;
                 /* backspace */
                 case 127:
+                case 8:
                     delete_char(b);
                     break;
                 /* tab */
