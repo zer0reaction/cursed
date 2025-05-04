@@ -289,10 +289,9 @@ void paste(Buffer *b) {
     pos = get_current_pos(b);
 
     insert_substr(b, pos, kill_buffer, len);
+    b->line += line_count(kill_buffer);
 
     b->saved = false;
-
-    /* TODO add moving cursor down */
 }
 
 /* ------------------------------------------------------------------------
