@@ -14,7 +14,7 @@ utility.o: utility.c
 clean:
 	rm -f ./main.o ./utility.o ./cursed
 
-install:
+install: cursed
 	cp ./cursed /usr/bin/cursed
 	chmod 755 /usr/bin/cursed
 
