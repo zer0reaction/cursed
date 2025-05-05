@@ -11,14 +11,17 @@ main.o: main.c
 utility.o: utility.c
 	gcc ${CFLAGS} -c -o ./utility.o ./utility.c
 
+utility.c: utility.h
+
+main.c: utility.h buffer.h
+
+utility.h: buffer.h
+
+buffer.h:
+
 clean:
 	rm -f ./main.o ./utility.o ./cursed
 
 install: cursed
 	cp ./cursed /usr/bin/cursed
 	chmod 755 /usr/bin/cursed
-
-utility.c: utility.h
-main.c: utility.h buffer.h
-utility.h: buffer.h
-buffer.h:
