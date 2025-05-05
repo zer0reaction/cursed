@@ -42,6 +42,7 @@ size_t line_len(char *line) {
     return len;
 }
 
+/* TODO fix this, it counts lines wrong right now */
 size_t line_count(char *start) {
     size_t count = 0;
 
