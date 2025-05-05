@@ -21,3 +21,4 @@ install:
 utility.c: utility.h
 main.c: utility.h buffer.h
 utility.h: buffer.h
+buffer.h:
