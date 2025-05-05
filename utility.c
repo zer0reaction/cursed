@@ -42,12 +42,15 @@ size_t line_len(char *line) {
     return len;
 }
 
-/* TODO fix this, it counts lines wrong right now */
 size_t line_count(char *start) {
     size_t count = 0;
 
-    while ((start = line_next(start)) != NULL) count++;
-    return count;
+    while (*start != '\0') {
+        if (*start == '\n') count++;
+        start++;
+    }
+
+    return count + 1;
 }
 
 /* line number starts from 0 */

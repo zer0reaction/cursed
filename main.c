@@ -101,7 +101,7 @@ Editor functions
 ------------------------------------------------------------------------- */
 
 void move_down(Buffer *b) {
-    if (b->line < line_count(b->data)) {
+    if (b->line < line_count(b->data) - 1) {
         b->line++;
         adjust_col(b);
     }
@@ -170,7 +170,7 @@ void move_screen_down(Buffer *b, unsigned short int screen_height) {
 
     n = screen_height / 2;
     pos = b->line + n;
-    b->line = (pos > line_count(b->data)) ? line_count(b->data) : pos;
+    b->line = (pos > line_count(b->data) - 1) ? line_count(b->data) - 1: pos;
     adjust_col(b);
 }
 
@@ -198,10 +198,6 @@ void insert_char(Buffer *b, char c) {
     size_t i = 0;
     size_t size = 0;
     size_t pos = 0;
-
-    if (b->line == line_count(b->data)) {
-        append_newline_maybe(b);
-    }
 
     size = strlen(b->data) + 1;
     b->data = realloc(b->data, size + 1);
@@ -328,8 +324,9 @@ void paste(Buffer *b) {
 
     insert_substr(b, pos, kill_buffer, len);
 
+    b->line += count - 1;
+
     if (kill_buffer[len - 1] == '\n') {
-        b->line += count;
         b->col = b->col_max = 0;
     } else if (count == 1) {
         b->col += line_len(kill_buffer);
@@ -338,8 +335,6 @@ void paste(Buffer *b) {
         char *lp = NULL;
 
         lp = line_goto(kill_buffer, count - 1);
-
-        b->line += count - 1;
         b->col = b->col_max = line_len(lp);
     }
 
