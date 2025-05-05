@@ -311,6 +311,20 @@ void kill_region(Buffer *b) {
     b->saved = false;
 }
 
+void copy_region(Buffer *b) {
+    size_t reg_len = 0;
+
+    if (b->reg_begin == b->reg_end) return;
+
+    reg_len = b->reg_end - b->reg_begin;
+
+    strncat(kill_buffer, b->reg_begin, reg_len);
+
+    /* TODO is this stupid? */
+    b->line = b->reg_begin_line;
+    b->col = b->col_max = b->reg_begin_col;
+}
+
 void paste(Buffer *b) {
     size_t len = 0;
     size_t pos = 0;
@@ -533,6 +547,11 @@ int main(int argc, char **argv) {
                 case 'd':
                     end_region(b);
                     kill_region(b);
+                    b->mode = NORMAL_MODE;
+                    break;
+                case 'r':
+                    end_region(b);
+                    copy_region(b);
                     b->mode = NORMAL_MODE;
                     break;
                 case 'j':
