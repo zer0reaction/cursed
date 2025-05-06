@@ -377,6 +377,8 @@ void render(Buffer *b) {
     char *lp = NULL;
     char status[128] = {0};
 
+    curs_set(0);
+
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
@@ -401,6 +403,8 @@ void render(Buffer *b) {
     mvaddstr(1, 0, lp);
     move(b->line - b->line_off + 1, b->col);
     refresh();
+
+    curs_set(1);
 }
 
 int main(int argc, char **argv) {
