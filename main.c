@@ -380,7 +380,7 @@ void render_end(void) {
 void render(Buffer *b) {
     char *lp = NULL;
     char status[128] = {0};
-    wchar_t wcbuf[1024] = {0};
+    wchar_t wcbuf[10 * 1024] = {0};
 
     curs_set(0);
 
@@ -388,7 +388,7 @@ void render(Buffer *b) {
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
     lp = line_goto(b->data, b->line_off);
-    mbstowcs(wcbuf, lp, 1024);
+    mbstowcs(wcbuf, lp, 10 * 1024);
 
     if (b->mode == INSERT_MODE) {
         sprintf(status, "[insert] %s", b->path);
