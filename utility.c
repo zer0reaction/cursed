@@ -5,9 +5,14 @@
 #include "utility.h"
 
 size_t get_current_pos(Buffer *b) {
-    char *ptr;
+    size_t i = 0;
+    char *ptr = NULL;
 
-    ptr = line_goto(b->data, b->line) + b->col;
+    ptr = line_goto(b->data, b->line);
+    for (i = 0; i < b->col; ++i) {
+        ptr += char_size(*ptr);
+    }
+
     return ptr - b->data;
 }
 
@@ -35,11 +40,34 @@ char *line_next(char *start) {
     else return cur;
 }
 
+unsigned char char_size(char c) {
+    if      ((c & 0x80) == 0x00) return 1;
+    else if ((c & 0xC0) == 0x80) return 0;
+    else if ((c & 0xE0) == 0xC0) return 2;
+    else if ((c & 0xF0) == 0xE0) return 3;
+    else if ((c & 0xF8) == 0xF0) return 4;
+    else return 0;
+}
+
 size_t line_len(char *line) {
     size_t len = 0;
+    size_t pos = 0;
 
-    while (line[len] != '\0' && line[len] != '\n') len++;
+    while (line[pos] != '\0' && line[pos] != '\n') {
+        unsigned char csize = char_size(line[pos]);
+
+        pos += csize;
+        len++;
+    }
+
     return len;
+}
+
+size_t line_size(char *line) {
+    size_t size = 0;
+
+    while (line[size] != '\0' && line[size] != '\n') size++;
+    return size;
 }
 
 size_t line_count(char *start) {

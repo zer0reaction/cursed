@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
+#include <assert.h>
+
+/* idk where the header is */
+int mvaddwstr(int y, int x, const wchar_t *wstr);
 
 #include "utility.h"
 #include "buffer.h"
@@ -195,50 +200,49 @@ void move_screen_center(Buffer *b, size_t screen_height) {
 }
 
 void insert_char(Buffer *b, char c) {
-    size_t i = 0;
-    size_t size = 0;
-    size_t pos = 0;
+    static unsigned char size = 0;
+    static unsigned char acc = 0;
+    static char buf[4] = {0};
 
-    size = strlen(b->data) + 1;
-    b->data = realloc(b->data, size + 1);
-
-    pos = get_current_pos(b);
-
-    for (i = size; i > pos; --i) {
-        b->data[i] = b->data[i - 1];
-    }
-    b->data[pos] = c;
-
-    if (c == '\n') {
-        b->line++;
-        b->col_max = b->col = 0;
-    } else {
-        b->col++;
-        b->col_max = b->col;
+    if (char_size(c) > 0) {
+        size = char_size(c);
+        acc = 0;
+        memset(buf, 0, 4);
     }
 
-    b->saved = false;
+    buf[acc++] = c;
+
+    if (acc != 0 && acc == size) {
+        size_t pos = get_current_pos(b);
+        insert_substr(b, pos, buf, size);
+
+        if (buf[0] == '\n') {
+            b->col = b->col_max = 0;
+            b->line++;
+        } else {
+            b->col++;
+            b->col_max = b->col;
+        }
+
+        b->saved = false;
+    }
 }
 
 void delete_char(Buffer *b) {
-    size_t i = 0;
-    size_t len = 0;
     size_t pos = 0;
     size_t prev_line_len = 0;
 
-    if (b->line == 0 && b->col == 0) return;
+    if ((pos = get_current_pos(b)) == 0) return;
+    pos--;
 
     if (b->line > 0) {
-        prev_line_len = line_len(line_goto(b->data, b->line - 1));
+        char *prev_line = line_goto(b->data, b->line - 1);
+        prev_line_len = line_len(prev_line);
     }
 
-    pos = get_current_pos(b);
-    len = strlen(b->data);
+    while (char_size(b->data[pos]) == 0) pos--;
 
-    for (i = pos - 1; i < len - 1; ++i) {
-        b->data[i] = b->data[i + 1];
-    }
-    b->data[len - 1] = '\0';
+    erase_substr(b, pos, char_size(b->data[pos]));
 
     if (b->col > 0) {
         b->col--;
@@ -256,15 +260,15 @@ void clear_killed(void) {
 }
 
 void kill_line(Buffer *b) {
-    size_t len = 0;
+    size_t size = 0;
     size_t killed = 0;
     size_t pos = 0;
     char *cur_line = NULL;
 
     cur_line = line_goto(b->data, b->line);
-    len = line_len(cur_line);
+    size = line_size(cur_line);
     pos = cur_line - b->data;
-    killed = (cur_line[len] != '\0') ? len + 1 : len;
+    killed = (cur_line[size] != '\0') ? size + 1 : size;
 
     strncat(kill_buffer, cur_line, killed);
     erase_substr(b, pos, killed);
@@ -376,6 +380,7 @@ void render_end(void) {
 void render(Buffer *b) {
     char *lp = NULL;
     char status[128] = {0};
+    wchar_t wcbuf[1024] = {0};
 
     curs_set(0);
 
@@ -383,6 +388,7 @@ void render(Buffer *b) {
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
     lp = line_goto(b->data, b->line_off);
+    mbstowcs(wcbuf, lp, 1024);
 
     if (b->mode == INSERT_MODE) {
         sprintf(status, "[insert] %s", b->path);
@@ -400,7 +406,7 @@ void render(Buffer *b) {
     mvaddstr(0, 0, status);
     attroff(COLOR_PAIR(1));
 
-    mvaddstr(1, 0, lp);
+    mvaddwstr(1, 0, wcbuf);
     move(b->line - b->line_off + 1, b->col);
     refresh();
 
@@ -414,6 +420,8 @@ int main(int argc, char **argv) {
     bool should_close = false;
 
     if (argc == 1 || argc > 5) return 1;
+
+    setlocale(LC_ALL, "");
 
     for (i = 0; i < argc - 1; ++i) {
         buf_list[i] = buf_open(argv[i + 1]);
@@ -518,8 +526,7 @@ int main(int argc, char **argv) {
                     b = (buf_list[3] != NULL) ? buf_list[3] : b;
                     break;
             }
-        /* only supporting ASCII for now */
-        } else if (b->mode == INSERT_MODE && (c >= 0 && c <= 127)) {
+        } else if (b->mode == INSERT_MODE) {
             switch (c) {
                 /* escape */
                 case 27:

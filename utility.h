@@ -8,7 +8,9 @@
 size_t get_current_pos(Buffer *b);
 void append_newline_maybe(Buffer *b);
 char *line_next(char *start);
+unsigned char char_size(char c);
 size_t line_len(char *line);
+size_t line_size(char *line);
 size_t line_count(char *start);
 char *line_goto(char *start, size_t n);
 void adjust_col(Buffer *b);
