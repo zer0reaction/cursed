@@ -398,7 +398,8 @@ void render(Buffer *b) {
         sprintf(status, "%s", b->path);
     }
     if (!(b->saved)) strcat(status, "*");
-    sprintf(status + strlen(status), " (%lu)", strlen(kill_buffer));
+    sprintf(status + strlen(status), ":%lu:%lu (%lu)",
+            b->line + 1, b->col + 1, strlen(kill_buffer));
 
     erase();
 
