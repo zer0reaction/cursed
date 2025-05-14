@@ -4,6 +4,14 @@
 
 #include "utility.h"
 
+static char seps[] = {
+    '!', '"', '#', '$', '%', '&', '\'',
+    '(', ')', '*', '+', ',', '-', '.',
+    '/', ':', ';', '<', '=', '>', '?',
+    '@', '[', '\\', ']', '^', '_', '`',
+    '{', '|', '}', '~', ' '
+};
+
 size_t get_current_pos(Buffer *b) {
     size_t i = 0;
     char *ptr = NULL;
@@ -145,4 +153,14 @@ void erase_substr(Buffer *b, size_t pos, size_t len) {
     b->data[buf_len - len] = '\0';
 
     b->data = realloc(b->data, buf_len - len + 1);
+}
+
+bool is_sep(char c) {
+    size_t i = 0;
+
+    for (i = 0; i < sizeof(seps); ++i) {
+        if (c == seps[i]) return true;
+    }
+
+    return false;
 }

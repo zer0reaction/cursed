@@ -2,6 +2,7 @@
 #define UTILITY_H_
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "buffer.h"
 
@@ -17,5 +18,6 @@ void adjust_col(Buffer *b);
 void adjust_offset(Buffer *b, size_t screen_height);
 void insert_substr(Buffer *b, size_t pos, char *str, size_t len);
 void erase_substr(Buffer *b, size_t pos, size_t len);
+bool is_sep(char c);
 
 #endif /* UTILITY_H_ */

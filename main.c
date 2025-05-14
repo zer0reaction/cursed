@@ -143,6 +143,36 @@ void move_line_left(Buffer *b) {
     b->col = b->col_max = 0;
 }
 
+void move_forward(Buffer *b) {
+    size_t pos = get_current_pos(b);
+    char c = b->data[pos];
+
+    if (c == '\0') return;
+
+    if (c == ' ') {
+        while (c != '\0' && c != '\n' && c == ' ') {
+            b->col++;
+            b->col_max = b->col;
+            pos += char_size(c);
+            c = b->data[pos];
+        }
+        return;
+    }
+
+    if (is_sep(c)) {
+        b->col++;
+        b->col_max = b->col;
+        return;
+    }
+
+    while (c != '\0' && c != '\n' && !is_sep(c)) {
+        b->col++;
+        b->col_max = b->col;
+        pos += char_size(c);
+        c = b->data[pos];
+    }
+}
+
 void move_line_begin(Buffer *b) {
     size_t i = 0;
     char *cur_line = NULL;
@@ -473,6 +503,9 @@ int main(int argc, char **argv) {
                     break;
                 case 'h':
                     move_left(b);
+                    break;
+                case 'e':
+                    move_forward(b);
                     break;
                 case 's':
                     buf_save(b);
