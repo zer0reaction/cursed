@@ -160,8 +160,12 @@ void move_forward(Buffer *b) {
     }
 
     if (is_sep(c)) {
-        b->col++;
-        b->col_max = b->col;
+        while (c != '\0' && c != '\n' && is_sep(c)) {
+            b->col++;
+            b->col_max = b->col;
+            pos += char_size(c);
+            c = b->data[pos];
+        }
         return;
     }
 
