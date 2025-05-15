@@ -144,8 +144,10 @@ void move_line_left(Buffer *b) {
 }
 
 void move_forward(Buffer *b) {
-    size_t pos = get_current_pos(b);
-    char c = b->data[pos];
+    /* TODO not very efficient */
+    #define CHAR_AT_CUR(pos) (b->data[get_current_pos(b)])
+
+    char c = CHAR_AT_CUR();
 
     if (c == '\0') return;
 
@@ -153,8 +155,7 @@ void move_forward(Buffer *b) {
         while (c != '\0' && c != '\n' && c == ' ') {
             b->col++;
             b->col_max = b->col;
-            pos += char_size(c);
-            c = b->data[pos];
+            c = CHAR_AT_CUR();
         }
         return;
     }
@@ -163,8 +164,7 @@ void move_forward(Buffer *b) {
         while (c != '\0' && c != '\n' && is_sep(c)) {
             b->col++;
             b->col_max = b->col;
-            pos += char_size(c);
-            c = b->data[pos];
+            c = CHAR_AT_CUR();
         }
         return;
     }
@@ -172,9 +172,47 @@ void move_forward(Buffer *b) {
     while (c != '\0' && c != '\n' && !is_sep(c)) {
         b->col++;
         b->col_max = b->col;
-        pos += char_size(c);
-        c = b->data[pos];
+        c = CHAR_AT_CUR();
     }
+
+    #undef CHAR_AT_CUR
+}
+
+void move_backward(Buffer *b) {
+    /* TODO not very efficient */
+    #define CHAR_BEFORE_CUR(void) (b->data[get_current_pos(b) - 1])
+
+    char c = 0;
+
+    if (b->line == 0 && b->col == 0) return;
+
+    c = CHAR_BEFORE_CUR();
+
+    if (c == ' ') {
+        while (b->col > 0 && c == ' ') {
+            b->col--;
+            b->col_max = b->col;
+            if (b->col > 0) c = CHAR_BEFORE_CUR();
+        }
+        return;
+    }
+
+    if (is_sep(c)) {
+        while (b->col > 0 && is_sep(c)) {
+            b->col--;
+            b->col_max = b->col;
+            if (b->col > 0) c = CHAR_BEFORE_CUR();
+        }
+        return;
+    }
+
+    while (b->col > 0 && !is_sep(c)) {
+        b->col--;
+        b->col_max = b->col;
+        if (b->col > 0) c = CHAR_BEFORE_CUR();
+    }
+
+    #undef CHAR_BEFORE_CUR
 }
 
 void move_line_begin(Buffer *b) {
@@ -357,10 +395,6 @@ void copy_region(Buffer *b) {
     reg_len = b->reg_end - b->reg_begin;
 
     strncat(kill_buffer, b->reg_begin, reg_len);
-
-    /* TODO is this stupid? */
-    b->line = b->reg_begin_line;
-    b->col = b->col_max = b->reg_begin_col;
 }
 
 void paste(Buffer *b) {
@@ -508,8 +542,11 @@ int main(int argc, char **argv) {
                 case 'h':
                     move_left(b);
                     break;
-                case 'e':
+                case 'f':
                     move_forward(b);
+                    break;
+                case 'b':
+                    move_backward(b);
                     break;
                 case 's':
                     buf_save(b);
@@ -523,13 +560,13 @@ int main(int argc, char **argv) {
                 case '0':
                     move_line_left(b);
                     break;
-                case 'f':
+                case 'e':
                     move_screen_center(b, HEIGHT);
                     break;
                 case 'd':
                     kill_line(b);
                     break;
-                case 'c':
+                case 'r':
                     clear_killed();
                     break;
                 case 'y':
@@ -598,7 +635,7 @@ int main(int argc, char **argv) {
                     kill_region(b);
                     b->mode = NORMAL_MODE;
                     break;
-                case 'r':
+                case 'c':
                     end_region(b);
                     copy_region(b);
                     b->mode = NORMAL_MODE;
@@ -615,6 +652,12 @@ int main(int argc, char **argv) {
                 case 'h':
                     move_left(b);
                     break;
+                case 'f':
+                    move_forward(b);
+                    break;
+                case 'b':
+                    move_backward(b);
+                    break;
                 case '^':
                     move_line_begin(b);
                     break;
@@ -624,10 +667,10 @@ int main(int argc, char **argv) {
                 case '0':
                     move_line_left(b);
                     break;
-                case 'f':
+                case 'e':
                     move_screen_center(b, HEIGHT);
                     break;
-                case 'c':
+                case 'r':
                     clear_killed();
                     break;
                 case 'n':
