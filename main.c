@@ -650,6 +650,7 @@ int main(int argc, char **argv) {
                     break;
             }
         }
+#undef SWITCH_MOVE
     }
 
     render_end();
