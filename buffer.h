@@ -14,6 +14,7 @@ struct Buffer {
     char *data;
     char *path;
     char *reg_begin, *reg_end;
+    size_t size, capacity;
     size_t line, col;
     size_t line_off;
     size_t col_max;

@@ -19,5 +19,6 @@ void adjust_offset(Buffer *b, size_t screen_height);
 void insert_substr(Buffer *b, size_t pos, char *str, size_t len);
 void erase_substr(Buffer *b, size_t pos, size_t len);
 bool is_sep(char c);
+void data_resize(Buffer *b, size_t new_size);
 
 #endif /* UTILITY_H_ */

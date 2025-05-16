@@ -26,6 +26,7 @@ Buffer *buf_create_from_file(const char *path) {
     b->data = malloc(size + 1);
     fread(b->data, 1, size, fp);
     b->data[size] = '\0';
+    b->size = b->capacity = size + 1;
 
     b->path = malloc(strlen(path) + 1);
     strcpy(b->path, path);
@@ -44,6 +45,7 @@ Buffer *buf_create_empty(const char *path) {
 
     b->data = malloc(1);
     b->data[0] = '\0';
+    b->size = b->capacity = 1;
 
     b->path = malloc(strlen(path) + 1);
     strcpy(b->path, path);

@@ -29,7 +29,7 @@ void append_newline_maybe(Buffer *b) {
 
     len = strlen(b->data);
     if (len == 0 || b->data[len - 1] != '\n') {
-        b->data = realloc(b->data, len + 2);
+        data_resize(b, len + 2);
         b->data[len] = '\n';
         b->data[len + 1] = '\0';
         b->saved = false;
@@ -131,7 +131,7 @@ void insert_substr(Buffer *b, size_t pos, char *str, size_t len) {
 
     buf_len = strlen(b->data);
 
-    b->data = realloc(b->data, buf_len + len + 1);
+    data_resize(b, buf_len + len + 1);
     b->data[buf_len + len] = '\0';
 
     for (i = buf_len + len - 1; i >= pos + len; --i) {
@@ -152,7 +152,7 @@ void erase_substr(Buffer *b, size_t pos, size_t len) {
     }
     b->data[buf_len - len] = '\0';
 
-    b->data = realloc(b->data, buf_len - len + 1);
+    data_resize(b, buf_len - len + 1);
 }
 
 bool is_sep(char c) {
@@ -163,4 +163,16 @@ bool is_sep(char c) {
     }
 
     return false;
+}
+
+void data_resize(Buffer *b, size_t new_size) {
+    b->size = new_size;
+
+    if (new_size > b->capacity) {
+        b->data = realloc(b->data, new_size * 2);
+        b->capacity = new_size * 2;
+    } else if (new_size <= b->capacity / 4) {
+        b->data = realloc(b->data, new_size * 2);
+        b->capacity = new_size * 2;
+    }
 }
