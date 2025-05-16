@@ -490,8 +490,50 @@ int main(int argc, char **argv) {
         render(b);
         c = getch();
 
+/* TODO is there a way to do this better? */
+#define SWITCH_MOVE \
+        case 'j': \
+            move_down(b); \
+            break; \
+        case 'k': \
+            move_up(b); \
+            break; \
+        case 'l': \
+            move_right(b); \
+            break; \
+        case 'h': \
+            move_left(b); \
+            break; \
+        case 'f': \
+            move_forward(b); \
+            break; \
+        case 'b': \
+            move_backward(b); \
+            break; \
+        case '^': \
+            move_line_begin(b); \
+            break; \
+        case '$': \
+            move_line_end(b); \
+            break; \
+        case '0': \
+            move_line_left(b); \
+            break; \
+        case 'e': \
+            move_screen_center(b, HEIGHT); \
+            break; \
+        case 'n': \
+            move_screen_down(b, HEIGHT); \
+            move_screen_center(b, HEIGHT); \
+            break; \
+        case 'p': \
+            move_screen_up(b, HEIGHT); \
+            move_screen_center(b, HEIGHT); \
+            break;
+
         if (b->mode == NORMAL_MODE) {
             switch (c) {
+                SWITCH_MOVE
                 case 'q':
                     /* TODO check for all buffers to be saved */
                     if (b->saved) should_close = true;
@@ -514,38 +556,8 @@ int main(int argc, char **argv) {
                     move_line_end(b);
                     b->mode = INSERT_MODE;
                     break;
-                case 'j':
-                    move_down(b);
-                    break;
-                case 'k':
-                    move_up(b);
-                    break;
-                case 'l':
-                    move_right(b);
-                    break;
-                case 'h':
-                    move_left(b);
-                    break;
-                case 'f':
-                    move_forward(b);
-                    break;
-                case 'b':
-                    move_backward(b);
-                    break;
                 case 's':
                     buf_save(b);
-                    break;
-                case '^':
-                    move_line_begin(b);
-                    break;
-                case '$':
-                    move_line_end(b);
-                    break;
-                case '0':
-                    move_line_left(b);
-                    break;
-                case 'e':
-                    move_screen_center(b, HEIGHT);
                     break;
                 case 'd':
                     kill_line(b);
@@ -555,14 +567,6 @@ int main(int argc, char **argv) {
                     break;
                 case 'y':
                     paste(b);
-                    break;
-                case 'n':
-                    move_screen_down(b, HEIGHT);
-                    move_screen_center(b, HEIGHT);
-                    break;
-                case 'p':
-                    move_screen_up(b, HEIGHT);
-                    move_screen_center(b, HEIGHT);
                     break;
                 case ' ':
                     begin_region(b);
@@ -605,6 +609,7 @@ int main(int argc, char **argv) {
             }
         } else if (b->mode == REGION_MODE) {
             switch (c) {
+                SWITCH_MOVE
                 /* escape */
                 case 27:
                     clear_region(b);
@@ -624,46 +629,8 @@ int main(int argc, char **argv) {
                     copy_region(b);
                     b->mode = NORMAL_MODE;
                     break;
-                case 'j':
-                    move_down(b);
-                    break;
-                case 'k':
-                    move_up(b);
-                    break;
-                case 'l':
-                    move_right(b);
-                    break;
-                case 'h':
-                    move_left(b);
-                    break;
-                case 'f':
-                    move_forward(b);
-                    break;
-                case 'b':
-                    move_backward(b);
-                    break;
-                case '^':
-                    move_line_begin(b);
-                    break;
-                case '$':
-                    move_line_end(b);
-                    break;
-                case '0':
-                    move_line_left(b);
-                    break;
-                case 'e':
-                    move_screen_center(b, HEIGHT);
-                    break;
                 case 'r':
                     clear_killed();
-                    break;
-                case 'n':
-                    move_screen_down(b, HEIGHT);
-                    move_screen_center(b, HEIGHT);
-                    break;
-                case 'p':
-                    move_screen_up(b, HEIGHT);
-                    move_screen_center(b, HEIGHT);
                     break;
                 /* Ctrl+j */
                 case 10:
