@@ -151,17 +151,9 @@ void move_forward(Buffer *b) {
 
     if (c == '\0') return;
 
-    if (c == ' ') {
-        while (c != '\0' && c != '\n' && c == ' ') {
-            b->col++;
-            b->col_max = b->col;
-            c = CHAR_AT_CUR();
-        }
-        return;
-    }
-
     if (is_sep(c)) {
-        while (c != '\0' && c != '\n' && is_sep(c)) {
+        char rem = c;
+        while (c != '\0' && c != '\n' && c == rem) {
             b->col++;
             b->col_max = b->col;
             c = CHAR_AT_CUR();
@@ -188,17 +180,9 @@ void move_backward(Buffer *b) {
 
     c = CHAR_BEFORE_CUR();
 
-    if (c == ' ') {
-        while (b->col > 0 && c == ' ') {
-            b->col--;
-            b->col_max = b->col;
-            if (b->col > 0) c = CHAR_BEFORE_CUR();
-        }
-        return;
-    }
-
     if (is_sep(c)) {
-        while (b->col > 0 && is_sep(c)) {
+        char rem = c;
+        while (b->col > 0 && c == rem) {
             b->col--;
             b->col_max = b->col;
             if (b->col > 0) c = CHAR_BEFORE_CUR();
