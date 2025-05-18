@@ -33,17 +33,16 @@ void render_end(void) {
 }
 
 void render(Buffer *b) {
-    char *lp = NULL;
-    char status[128] = {0};
-    wchar_t wcbuf[10 * 1024] = {0};
-
     curs_set(0);
 
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
-    lp = line_goto(b->data, b->line_off);
+    wchar_t wcbuf[10 * 1024] = {0};
+    char *lp = line_goto(b->data, b->line_off);
     mbstowcs(wcbuf, lp, 10 * 1024);
+
+    char status[128] = {0};
 
     if (b->mode == INSERT_MODE) {
         sprintf(status, "[insert] %s", b->path);
@@ -70,28 +69,27 @@ void render(Buffer *b) {
 }
 
 int main(int argc, char **argv) {
-    int i = 0;
-    Buffer *b = NULL;
-    Buffer *buf_list[4] = {0};
-    bool should_close = false;
-
     if (argc == 1 || argc > 5) return 1;
 
     setlocale(LC_ALL, "");
 
-    for (i = 0; i < argc - 1; ++i) {
+    Buffer *b = NULL;
+    Buffer *buf_list[4] = {0};
+
+    for (int i = 0; i < argc - 1; ++i) {
         buf_list[i] = buf_open(argv[i + 1]);
     }
     b = buf_list[0];
 
     render_init();
 
-    while (!should_close) {
-        int c = 0;
+    bool should_close = false;
 
+    while (!should_close) {
         adjust_offset(b, HEIGHT);
+
         render(b);
-        c = getch();
+        int c = getch();
 
 /* TODO is there a way to do this better? */
 #define SWITCH_MOVE \
@@ -205,8 +203,9 @@ int main(int argc, char **argv) {
                     break;
                 /* tab */
                 case 9: {
-                    int i = 0;
-                    for (i = 0; i < TAB_SPACES; ++i) insert_char(b, ' ');
+                    for (int i = 0; i < TAB_SPACES; ++i) {
+                        insert_char(b, ' ');
+                    }
                 } break;
                 default: insert_char(b, c);
             }
@@ -258,7 +257,7 @@ int main(int argc, char **argv) {
 
     render_end();
 
-    for (i = 0; i < argc - 1; ++i) {
+    for (int i = 0; i < argc - 1; ++i) {
         buf_kill(buf_list[i]);
     }
 

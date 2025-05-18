@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "utility.h"
 
@@ -13,11 +14,8 @@ static char seps[] = {
 };
 
 size_t get_current_pos(Buffer *b) {
-    size_t i = 0;
-    char *ptr = NULL;
-
-    ptr = line_goto(b->data, b->line);
-    for (i = 0; i < b->col; ++i) {
+    char *ptr = line_goto(b->data, b->line);
+    for (size_t i = 0; i < b->col; ++i) {
         ptr += char_size(*ptr);
     }
 
@@ -25,9 +23,7 @@ size_t get_current_pos(Buffer *b) {
 }
 
 void append_newline_maybe(Buffer *b) {
-    size_t len = 0;
-
-    len = strlen(b->data);
+    size_t len = strlen(b->data);
     if (len == 0 || b->data[len - 1] != '\n') {
         data_resize(b, len + 2);
         b->data[len] = '\n';
@@ -37,11 +33,9 @@ void append_newline_maybe(Buffer *b) {
 }
 
 char *line_next(char *start) {
-    char *cur = NULL;
-
     if (*start == '\0') return NULL;
 
-    cur = start;
+    char *cur = start;
     while (*cur != '\n' && *cur != '\0') cur++;
 
     if (*cur == '\n') return cur + 1;
@@ -62,7 +56,7 @@ size_t line_len(char *line) {
     size_t pos = 0;
 
     while (line[pos] != '\0' && line[pos] != '\n') {
-        unsigned char csize = char_size(line[pos]);
+        uint8_t csize = char_size(line[pos]);
 
         pos += csize;
         len++;
@@ -91,9 +85,7 @@ size_t line_count(char *start) {
 
 /* line number starts from 0 */
 char *line_goto(char *start, size_t n) {
-    size_t i = 0;
-
-    for (i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         start = line_next(start);
         if (start == NULL) return NULL;
     }
@@ -101,11 +93,8 @@ char *line_goto(char *start, size_t n) {
 }
 
 void adjust_col(Buffer *b) {
-    char *lp = NULL;
-    size_t len = 0;
-
-    lp = line_goto(b->data, b->line);
-    len = line_len(lp);
+    char *lp = line_goto(b->data, b->line);
+    size_t len = line_len(lp);
     if (len < b->col_max) {
         b->col = len;
     } else {
@@ -114,9 +103,7 @@ void adjust_col(Buffer *b) {
 }
 
 void adjust_offset(Buffer *b, size_t screen_height) {
-    long int rel_line = 0;
-
-    rel_line = b->line - b->line_off;
+    int64_t rel_line = b->line - b->line_off;
 
     if (rel_line < 0) {
         b->line_off += rel_line;
@@ -126,15 +113,12 @@ void adjust_offset(Buffer *b, size_t screen_height) {
 }
 
 void insert_substr(Buffer *b, size_t pos, char *str, size_t len) {
-    size_t i = 0;
-    size_t buf_len = 0;
-
-    buf_len = strlen(b->data);
+    size_t buf_len = strlen(b->data);
 
     data_resize(b, buf_len + len + 1);
     b->data[buf_len + len] = '\0';
 
-    for (i = buf_len + len - 1; i >= pos + len; --i) {
+    for (size_t i = buf_len + len - 1; i >= pos + len; --i) {
         b->data[i] = b->data[i - len];
     }
 
@@ -142,12 +126,9 @@ void insert_substr(Buffer *b, size_t pos, char *str, size_t len) {
 }
 
 void erase_substr(Buffer *b, size_t pos, size_t len) {
-    size_t i = 0;
-    size_t buf_len = 0;
+    size_t buf_len = strlen(b->data);
 
-    buf_len = strlen(b->data);
-
-    for (i = pos; i < buf_len - len; ++i) {
+    for (size_t i = pos; i < buf_len - len; ++i) {
         b->data[i] = b->data[i + len];
     }
     b->data[buf_len - len] = '\0';
@@ -156,9 +137,7 @@ void erase_substr(Buffer *b, size_t pos, size_t len) {
 }
 
 bool is_sep(char c) {
-    size_t i = 0;
-
-    for (i = 0; i < sizeof(seps); ++i) {
+    for (size_t i = 0; i < sizeof(seps); ++i) {
         if (c == seps[i]) return true;
     }
 

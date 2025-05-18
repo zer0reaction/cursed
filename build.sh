@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CC='gcc'
-CFLAGS='-Wall -Wextra -pedantic -std=c89 -fsanitize=address,undefined -pipe'
+CFLAGS='-Wall -Wextra -pedantic -std=c99 -fsanitize=address,undefined -pipe'
 LDFLAGS='-lncursesw'
 
 OBJ='main.o utility.o buffer.o editor.o'
