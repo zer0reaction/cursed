@@ -101,7 +101,7 @@ void adjust_col(Buffer *b) {
 }
 
 void adjust_offset(Buffer *b, uint16_t screen_height) {
-    int64_t rel_line = b->line - b->line_off;
+    int64_t rel_line = (int64_t)b->line - b->line_off;
 
     if (rel_line < 0) {
         b->line_off += rel_line;
