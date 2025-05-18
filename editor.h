@@ -2,6 +2,7 @@
 #define EDITOR_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "buffer.h"
 
@@ -14,9 +15,9 @@ void move_forward(Buffer *b);
 void move_backward(Buffer *b);
 void move_line_begin(Buffer *b);
 void move_line_end(Buffer *b);
-void move_screen_down(Buffer *b, unsigned short int screen_height);
-void move_screen_up(Buffer *b, size_t screen_height);
-void move_screen_center(Buffer *b, size_t screen_height);
+void move_screen_down(Buffer *b, uint16_t screen_height);
+void move_screen_up(Buffer *b, uint16_t screen_height);
+void move_screen_center(Buffer *b, uint16_t screen_height);
 void insert_char(Buffer *b, char c);
 void delete_char(Buffer *b);
 void clear_killed(void);

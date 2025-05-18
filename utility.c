@@ -15,7 +15,7 @@ static char seps[] = {
 
 size_t get_current_pos(Buffer *b) {
     char *ptr = line_goto(b->data, b->line);
-    for (size_t i = 0; i < b->col; ++i) {
+    for (uint32_t i = 0; i < b->col; ++i) {
         ptr += char_size(*ptr);
     }
 
@@ -42,7 +42,7 @@ char *line_next(char *start) {
     else return cur;
 }
 
-unsigned char char_size(char c) {
+uint8_t char_size(char c) {
     if      ((c & 0x80) == 0x00) return 1;
     else if ((c & 0xC0) == 0x80) return 0;
     else if ((c & 0xE0) == 0xC0) return 2;
@@ -51,13 +51,12 @@ unsigned char char_size(char c) {
     else return 0;
 }
 
-size_t line_len(char *line) {
-    size_t len = 0;
-    size_t pos = 0;
+uint32_t line_len(char *line) {
+    uint32_t len = 0;
+    uint32_t pos = 0;
 
     while (line[pos] != '\0' && line[pos] != '\n') {
         uint8_t csize = char_size(line[pos]);
-
         pos += csize;
         len++;
     }
@@ -65,15 +64,14 @@ size_t line_len(char *line) {
     return len;
 }
 
-size_t line_size(char *line) {
-    size_t size = 0;
-
+uint32_t line_size(char *line) {
+    uint32_t size = 0;
     while (line[size] != '\0' && line[size] != '\n') size++;
     return size;
 }
 
-size_t line_count(char *start) {
-    size_t count = 0;
+uint32_t line_count(char *start) {
+    uint32_t count = 0;
 
     while (*start != '\0') {
         if (*start == '\n') count++;
@@ -84,8 +82,8 @@ size_t line_count(char *start) {
 }
 
 /* line number starts from 0 */
-char *line_goto(char *start, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
+char *line_goto(char *start, uint32_t n) {
+    for (uint32_t i = 0; i < n; ++i) {
         start = line_next(start);
         if (start == NULL) return NULL;
     }
@@ -94,7 +92,7 @@ char *line_goto(char *start, size_t n) {
 
 void adjust_col(Buffer *b) {
     char *lp = line_goto(b->data, b->line);
-    size_t len = line_len(lp);
+    uint32_t len = line_len(lp);
     if (len < b->col_max) {
         b->col = len;
     } else {
@@ -102,7 +100,7 @@ void adjust_col(Buffer *b) {
     }
 }
 
-void adjust_offset(Buffer *b, size_t screen_height) {
+void adjust_offset(Buffer *b, uint16_t screen_height) {
     int64_t rel_line = b->line - b->line_off;
 
     if (rel_line < 0) {
@@ -112,7 +110,7 @@ void adjust_offset(Buffer *b, size_t screen_height) {
     }
 }
 
-void insert_substr(Buffer *b, size_t pos, char *str, size_t len) {
+void insert_substr(Buffer *b, size_t pos, char *str, uint32_t len) {
     size_t buf_len = strlen(b->data);
 
     data_resize(b, buf_len + len + 1);
@@ -125,7 +123,7 @@ void insert_substr(Buffer *b, size_t pos, char *str, size_t len) {
     strncpy(b->data + pos, str, len);
 }
 
-void erase_substr(Buffer *b, size_t pos, size_t len) {
+void erase_substr(Buffer *b, size_t pos, uint32_t len) {
     size_t buf_len = strlen(b->data);
 
     for (size_t i = pos; i < buf_len - len; ++i) {
