@@ -29,4 +29,4 @@ Buffer *buf_open(const char *path);
 void buf_save(Buffer *b);
 void buf_kill(Buffer *b);
 
-#endif /* BUFFER_H_ */
+#endif // BUFFER_H_

@@ -38,13 +38,13 @@ void move_left(Buffer *b) {
     }
 }
 
-/* TODO rename */
+// TODO rename
 void move_line_left(Buffer *b) {
     b->col = b->col_max = 0;
 }
 
 void move_forward(Buffer *b) {
-    /* TODO not very efficient */
+    // TODO not very efficient
     #define CHAR_AT_CUR(pos) (b->data[get_current_pos(b)])
 
     char c = CHAR_AT_CUR();
@@ -71,7 +71,7 @@ void move_forward(Buffer *b) {
 }
 
 void move_backward(Buffer *b) {
-    /* TODO not very efficient */
+    // TODO not very efficient
     #define CHAR_BEFORE_CUR(void) (b->data[get_current_pos(b) - 1])
 
     if (b->line == 0 && b->col == 0) return;
@@ -115,7 +115,7 @@ void move_line_end(Buffer *b) {
     b->col = b->col_max = len;
 }
 
-/* TODO rename */
+// TODO rename
 void move_screen_down(Buffer *b, uint16_t screen_height) {
     uint16_t n = screen_height / 2;
     uint32_t pos = b->line + n;
@@ -123,7 +123,7 @@ void move_screen_down(Buffer *b, uint16_t screen_height) {
     adjust_col(b);
 }
 
-/* TODO rename */
+// TODO rename
 void move_screen_up(Buffer *b, uint16_t screen_height) {
     uint16_t n = screen_height / 2;
     int32_t pos = b->line - n;
@@ -131,7 +131,7 @@ void move_screen_up(Buffer *b, uint16_t screen_height) {
     adjust_col(b);
 }
 
-/* TODO rename */
+// TODO rename
 void move_screen_center(Buffer *b, uint16_t screen_height) {
     int32_t off = b->line - (screen_height / 2);
     b->line_off = (off >= 0) ? off : 0;
@@ -246,7 +246,7 @@ void kill_region(Buffer *b) {
     strncat(kill_buffer, b->reg_begin, reg_len);
     erase_substr(b, b->reg_begin - b->data, reg_len);
 
-    /* TODO is this stupid? */
+    // TODO is this stupid?
     b->line = b->reg_begin_line;
     b->col = b->col_max = b->reg_begin_col;
 

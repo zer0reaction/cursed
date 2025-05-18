@@ -21,4 +21,4 @@ void erase_substr(Buffer *b, size_t pos, uint32_t len);
 bool is_sep(char c);
 void data_resize(Buffer *b, size_t new_size);
 
-#endif /* UTILITY_H_ */
+#endif // UTILITY_H_

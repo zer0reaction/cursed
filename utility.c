@@ -81,7 +81,7 @@ uint32_t line_count(char *start) {
     return count + 1;
 }
 
-/* line number starts from 0 */
+// line number starts from 0
 char *line_goto(char *start, uint32_t n) {
     for (uint32_t i = 0; i < n; ++i) {
         start = line_next(start);

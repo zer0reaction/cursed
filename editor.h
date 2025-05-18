@@ -29,4 +29,4 @@ void kill_region(Buffer *b);
 void copy_region(Buffer *b);
 void paste(Buffer *b);
 
-#endif /* EDITOR_H_ */
+#endif // EDITOR_H_

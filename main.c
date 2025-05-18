@@ -4,7 +4,7 @@
 #include <locale.h>
 #include <assert.h>
 
-/* idk where the header is */
+// idk where the header is
 int mvaddwstr(int y, int x, const wchar_t *wstr);
 
 #include "config.h"
@@ -13,10 +13,6 @@ int mvaddwstr(int y, int x, const wchar_t *wstr);
 #include "editor.h"
 
 char kill_buffer[KILL_BUFFER_SIZE] = {0};
-
-/* ------------------------------------------------------------------------
-Render functions
-------------------------------------------------------------------------- */
 
 #define HEIGHT (LINES - 1)
 #define WIDTH (COLS)
@@ -91,7 +87,7 @@ int main(int argc, char **argv) {
         render(b);
         int c = getch();
 
-/* TODO is there a way to do this better? */
+// TODO is there a way to do this better?
 #define SWITCH_MOVE \
         case 'j': \
             move_down(b); \
@@ -136,7 +132,7 @@ int main(int argc, char **argv) {
             switch (c) {
                 SWITCH_MOVE
                 case 'q':
-                    /* TODO check for all buffers to be saved */
+                    // TODO check for all buffers to be saved
                     if (b->saved) should_close = true;
                     break;
                 case 'Q':
@@ -173,35 +169,35 @@ int main(int argc, char **argv) {
                     begin_region(b);
                     b->mode = REGION_MODE;
                     break;
-                /* Ctrl+j */
+                // Ctrl+j
                 case 10:
                     b = (buf_list[0] != NULL) ? buf_list[0] : b;
                     break;
-                /* Ctrl+k */
+                // Ctrl+k
                 case 11:
                     b = (buf_list[1] != NULL) ? buf_list[1] : b;
                     break;
-                /* Ctrl+l */
+                // Ctrl+l
                 case 12:
                     b = (buf_list[2] != NULL) ? buf_list[2] : b;
                     break;
-                /* Ctrl+; */
+                // Ctrl+;
                 case 59:
                     b = (buf_list[3] != NULL) ? buf_list[3] : b;
                     break;
             }
         } else if (b->mode == INSERT_MODE) {
             switch (c) {
-                /* escape */
+                // escape
                 case 27:
                     b->mode = NORMAL_MODE;
                     break;
-                /* backspace */
+                // backspace
                 case 127:
                 case 8:
                     delete_char(b);
                     break;
-                /* tab */
+                // tab
                 case 9: {
                     for (int i = 0; i < TAB_SPACES; ++i) {
                         insert_char(b, ' ');
@@ -212,12 +208,13 @@ int main(int argc, char **argv) {
         } else if (b->mode == REGION_MODE) {
             switch (c) {
                 SWITCH_MOVE
-                /* escape */
+                // escape
                 case 27:
                     clear_region(b);
                     b->mode = NORMAL_MODE;
                     break;
                 case ' ':
+                    // TODO not used right now
                     end_region(b);
                     b->mode = NORMAL_MODE;
                     break;
@@ -234,19 +231,19 @@ int main(int argc, char **argv) {
                 case 'r':
                     clear_killed();
                     break;
-                /* Ctrl+j */
+                // Ctrl+j
                 case 10:
                     b = (buf_list[0] != NULL) ? buf_list[0] : b;
                     break;
-                /* Ctrl+k */
+                // Ctrl+k
                 case 11:
                     b = (buf_list[1] != NULL) ? buf_list[1] : b;
                     break;
-                /* Ctrl+l */
+                // Ctrl+l
                 case 12:
                     b = (buf_list[2] != NULL) ? buf_list[2] : b;
                     break;
-                /* Ctrl+; */
+                // Ctrl+;
                 case 59:
                     b = (buf_list[3] != NULL) ? buf_list[3] : b;
                     break;

@@ -50,8 +50,8 @@ Buffer *buf_create_empty(const char *path) {
 }
 
 Buffer *buf_open(const char *path) {
-    /* TODO is fopen the right way to do this? */
-    /*      and is this function abstraction even good? */
+    // TODO is fopen the right way to do this?
+    //      and is this function abstraction even good?
 
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
