@@ -6,6 +6,10 @@ LDFLAGS='-lncursesw'
 
 OBJ='main.o utility.o buffer.o editor.o'
 
+if [ ! -f config.h ]; then
+    cp config.def.h config.h
+fi
+
 set -xe
 
 $CC $CFLAGS -c -o main.o    main.c
