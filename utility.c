@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "utility.h"
 
@@ -13,9 +12,9 @@ static char seps[] = {
     '{', '|', '}', '~', ' '
 };
 
-size_t get_current_pos(Buffer *b) {
+int get_current_pos(Buffer *b) {
     char *ptr = line_goto(b->data, b->line);
-    for (uint32_t i = 0; i < b->col; ++i) {
+    for (int i = 0; i < b->col; ++i) {
         ptr += char_size(*ptr);
     }
 
@@ -23,7 +22,7 @@ size_t get_current_pos(Buffer *b) {
 }
 
 void append_newline_maybe(Buffer *b) {
-    size_t len = strlen(b->data);
+    int len = strlen(b->data);
     if (len == 0 || b->data[len - 1] != '\n') {
         data_resize(b, len + 2);
         b->data[len] = '\n';
@@ -42,7 +41,7 @@ char *line_next(char *start) {
     else return cur;
 }
 
-uint8_t char_size(char c) {
+int char_size(char c) {
     if      ((c & 0x80) == 0x00) return 1;
     else if ((c & 0xC0) == 0x80) return 0;
     else if ((c & 0xE0) == 0xC0) return 2;
@@ -51,12 +50,12 @@ uint8_t char_size(char c) {
     else return 0;
 }
 
-uint32_t line_len(char *line) {
-    uint32_t len = 0;
-    uint32_t pos = 0;
+int line_len(char *line) {
+    int len = 0;
+    int pos = 0;
 
     while (line[pos] != '\0' && line[pos] != '\n') {
-        uint8_t csize = char_size(line[pos]);
+        int csize = char_size(line[pos]);
         pos += csize;
         len++;
     }
@@ -64,14 +63,14 @@ uint32_t line_len(char *line) {
     return len;
 }
 
-uint32_t line_size(char *line) {
-    uint32_t size = 0;
+int line_size(char *line) {
+    int size = 0;
     while (line[size] != '\0' && line[size] != '\n') size++;
     return size;
 }
 
-uint32_t line_count(char *start) {
-    uint32_t count = 0;
+int line_count(char *start) {
+    int count = 0;
 
     while (*start != '\0') {
         if (*start == '\n') count++;
@@ -82,8 +81,8 @@ uint32_t line_count(char *start) {
 }
 
 // line number starts from 0
-char *line_goto(char *start, uint32_t n) {
-    for (uint32_t i = 0; i < n; ++i) {
+char *line_goto(char *start, int n) {
+    for (int i = 0; i < n; ++i) {
         start = line_next(start);
         if (start == NULL) return NULL;
     }
@@ -92,7 +91,7 @@ char *line_goto(char *start, uint32_t n) {
 
 void adjust_col(Buffer *b) {
     char *lp = line_goto(b->data, b->line);
-    uint32_t len = line_len(lp);
+    int len = line_len(lp);
     if (len < b->col_max) {
         b->col = len;
     } else {
@@ -100,8 +99,8 @@ void adjust_col(Buffer *b) {
     }
 }
 
-void adjust_offset(Buffer *b, uint16_t screen_height) {
-    int64_t rel_line = (int64_t)b->line - b->line_off;
+void adjust_offset(Buffer *b, int screen_height) {
+    int rel_line = b->line - b->line_off;
 
     if (rel_line < 0) {
         b->line_off += rel_line;
@@ -110,23 +109,23 @@ void adjust_offset(Buffer *b, uint16_t screen_height) {
     }
 }
 
-void insert_substr(Buffer *b, size_t pos, char *str, uint32_t len) {
-    size_t buf_len = strlen(b->data);
+void insert_substr(Buffer *b, int pos, char *str, int len) {
+    int buf_len = strlen(b->data);
 
     data_resize(b, buf_len + len + 1);
     b->data[buf_len + len] = '\0';
 
-    for (size_t i = buf_len + len - 1; i >= pos + len; --i) {
+    for (int i = buf_len + len - 1; i >= pos + len; --i) {
         b->data[i] = b->data[i - len];
     }
 
     strncpy(b->data + pos, str, len);
 }
 
-void erase_substr(Buffer *b, size_t pos, uint32_t len) {
-    size_t buf_len = strlen(b->data);
+void erase_substr(Buffer *b, int pos, int len) {
+    int buf_len = strlen(b->data);
 
-    for (size_t i = pos; i < buf_len - len; ++i) {
+    for (int i = pos; i < buf_len - len; ++i) {
         b->data[i] = b->data[i + len];
     }
     b->data[buf_len - len] = '\0';
@@ -135,14 +134,14 @@ void erase_substr(Buffer *b, size_t pos, uint32_t len) {
 }
 
 bool is_sep(char c) {
-    for (size_t i = 0; i < sizeof(seps); ++i) {
+    for (int i = 0; i < (int)sizeof(seps); ++i) {
         if (c == seps[i]) return true;
     }
 
     return false;
 }
 
-void data_resize(Buffer *b, size_t new_size) {
+void data_resize(Buffer *b, int new_size) {
     b->size = new_size;
 
     if (new_size > b->capacity) {
