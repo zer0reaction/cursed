@@ -12,7 +12,7 @@ static char seps[] = {
     '{', '|', '}', '~', ' '
 };
 
-int get_current_pos(Buffer *b) {
+size_t get_current_pos(Buffer *b) {
     char *ptr = line_goto(b->data, b->line);
     for (int i = 0; i < b->col; ++i) {
         ptr += char_size(*ptr);
@@ -22,7 +22,7 @@ int get_current_pos(Buffer *b) {
 }
 
 void append_newline_maybe(Buffer *b) {
-    int len = strlen(b->data);
+    size_t len = strlen(b->data);
     if (len == 0 || b->data[len - 1] != '\n') {
         data_resize(b, len + 2);
         b->data[len] = '\n';
@@ -110,7 +110,7 @@ void adjust_offset(Buffer *b, int screen_height) {
 }
 
 void insert_substr(Buffer *b, int pos, char *str, int len) {
-    int buf_len = strlen(b->data);
+    size_t buf_len = strlen(b->data);
 
     data_resize(b, buf_len + len + 1);
     b->data[buf_len + len] = '\0';
@@ -123,9 +123,9 @@ void insert_substr(Buffer *b, int pos, char *str, int len) {
 }
 
 void erase_substr(Buffer *b, int pos, int len) {
-    int buf_len = strlen(b->data);
+    size_t buf_len = strlen(b->data);
 
-    for (int i = pos; i < buf_len - len; ++i) {
+    for (size_t i = pos; i < buf_len - len; ++i) {
         b->data[i] = b->data[i + len];
     }
     b->data[buf_len - len] = '\0';
@@ -141,7 +141,7 @@ bool is_sep(char c) {
     return false;
 }
 
-void data_resize(Buffer *b, int new_size) {
+void data_resize(Buffer *b, size_t new_size) {
     b->size = new_size;
 
     if (new_size > b->capacity) {

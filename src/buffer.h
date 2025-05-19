@@ -2,6 +2,7 @@
 #define BUFFER_H_
 
 #include <stdbool.h>
+#include <stddef.h>
 
 enum Buffer_Mode {
     NORMAL_MODE, INSERT_MODE, REGION_MODE
@@ -14,7 +15,7 @@ struct Buffer {
     char *data;
     char *path;
     char *reg_begin, *reg_end;
-    int size, capacity;
+    size_t size, capacity;
     int line, col;
     int line_off;
     int col_max;

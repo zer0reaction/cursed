@@ -2,10 +2,11 @@
 #define UTILITY_H_
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "buffer.h"
 
-int get_current_pos(Buffer *b);
+size_t get_current_pos(Buffer *b);
 void append_newline_maybe(Buffer *b);
 char *line_next(char *start);
 int char_size(char c);
@@ -18,6 +19,6 @@ void adjust_offset(Buffer *b, int screen_height);
 void insert_substr(Buffer *b, int pos, char *str, int len);
 void erase_substr(Buffer *b, int pos, int len);
 bool is_sep(char c);
-void data_resize(Buffer *b, int new_size);
+void data_resize(Buffer *b, size_t new_size);
 
 #endif // UTILITY_H_

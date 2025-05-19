@@ -151,7 +151,7 @@ void insert_char(Buffer *b, char c) {
     buf[acc++] = c;
 
     if (acc != 0 && acc == size) {
-        int pos = get_current_pos(b);
+        size_t pos = get_current_pos(b);
         insert_substr(b, pos, buf, size);
 
         if (buf[0] == '\n') {
@@ -167,7 +167,7 @@ void insert_char(Buffer *b, char c) {
 }
 
 void delete_char(Buffer *b) {
-    int pos = 0;
+    size_t pos = 0;
     int prev_line_len = 0;
 
     if ((pos = get_current_pos(b)) == 0) return;
@@ -262,7 +262,7 @@ void copy_region(Buffer *b) {
 
 void paste(Buffer *b) {
     int len = strlen(kill_buffer);
-    int pos = get_current_pos(b);
+    size_t pos = get_current_pos(b);
     int count = line_count(kill_buffer);
 
     if (len == 0) return;

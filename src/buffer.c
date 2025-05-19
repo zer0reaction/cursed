@@ -13,7 +13,7 @@ Buffer *buf_create_from_file(const char *path) {
     }
 
     fseek(fp, 0, SEEK_END);
-    int size = ftell(fp);
+    size_t size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
     Buffer *b = malloc(sizeof(Buffer));
@@ -65,7 +65,7 @@ Buffer *buf_open(const char *path) {
 void buf_save(Buffer *b) {
     append_newline_maybe(b);
 
-    int len = strlen(b->data);
+    size_t len = strlen(b->data);
     FILE *fp = fopen(b->path, "w");
     fwrite(b->data, 1, len, fp);
     b->saved = true;
