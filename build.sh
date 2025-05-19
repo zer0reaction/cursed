@@ -6,15 +6,15 @@ LDFLAGS='-lncursesw'
 
 OBJ='main.o utility.o buffer.o editor.o'
 
-if [ ! -f config.h ]; then
-    cp config.def.h config.h
+if [ ! -f src/config.h ]; then
+    cp src/config.def.h src/config.h
 fi
 
 set -xe
 
-$CC $CFLAGS -c -o main.o    main.c
-$CC $CFLAGS -c -o utility.o utility.c
-$CC $CFLAGS -c -o buffer.o  buffer.c
-$CC $CFLAGS -c -o editor.o  editor.c
+$CC $CFLAGS -c -o main.o    src/main.c
+$CC $CFLAGS -c -o utility.o src/utility.c
+$CC $CFLAGS -c -o buffer.o  src/buffer.c
+$CC $CFLAGS -c -o editor.o  src/editor.c
 
 $CC $CFLAGS -o cursed $OBJ $LDFLAGS
