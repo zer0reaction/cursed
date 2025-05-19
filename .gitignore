@@ -1,3 +1,2 @@
 cursed
-*.o
-config.h
+src/config.h
