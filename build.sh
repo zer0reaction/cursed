@@ -2,6 +2,7 @@
 
 CC='gcc'
 CFLAGS='-Wall -Wextra -pedantic -std=c99 -fsanitize=address,undefined -pipe'
+#CFLAGS='-O2'
 LDFLAGS='-lncursesw'
 
 OBJ='bin/main.o bin/utility.o bin/buffer.o bin/editor.o'
