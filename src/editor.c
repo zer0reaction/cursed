@@ -137,6 +137,16 @@ void move_screen_center(Buffer *b, int screen_height) {
     adjust_col(b);
 }
 
+void move_top(Buffer *b) {
+    b->line = 0;
+    adjust_col(b);
+}
+
+void move_bot(Buffer *b) {
+    b->line = line_count(b->data) - 1;
+    adjust_col(b);
+}
+
 void insert_char(Buffer *b, char c) {
     static int size = 0;
     static int acc = 0;

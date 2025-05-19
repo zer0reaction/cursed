@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     bool should_close = false;
 
     while (!should_close) {
-        adjust_offset(b, HEIGHT);
+        adjust_offset(b, HEIGHT); // TODO this should be in move_*
 
         render(b);
         int c = getch();
@@ -125,6 +125,13 @@ int main(int argc, char **argv) {
             break; \
         case 'p': \
             move_screen_up(b, HEIGHT); \
+            move_screen_center(b, HEIGHT); \
+            break; \
+        case 'g': \
+            move_top(b); \
+            break; \
+        case 'G': \
+            move_bot(b); \
             move_screen_center(b, HEIGHT); \
             break;
 

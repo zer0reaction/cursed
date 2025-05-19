@@ -15,6 +15,8 @@ void move_line_end(Buffer *b);
 void move_screen_down(Buffer *b, int screen_height);
 void move_screen_up(Buffer *b, int screen_height);
 void move_screen_center(Buffer *b, int screen_height);
+void move_top(Buffer *b);
+void move_bot(Buffer *b);
 void insert_char(Buffer *b, char c);
 void delete_char(Buffer *b);
 void clear_killed(void);
