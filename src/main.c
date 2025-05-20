@@ -17,19 +17,6 @@ char kill_buffer[KILL_BUFFER_SIZE] = {0};
 #define HEIGHT (LINES - 1)
 #define WIDTH (COLS)
 
-// @cleanup move to main
-void render_init(void) {
-    initscr();
-    noecho();
-    cbreak();
-    nl();
-}
-
-// @cleanup move to main
-void render_end(void) {
-    endwin();
-}
-
 // @feat make this better
 void render(Buffer *b) {
     curs_set(0);
@@ -81,7 +68,10 @@ int main(int argc, char **argv) {
     }
     b = buf_list[0];
 
-    render_init();
+    initscr();
+    noecho();
+    cbreak();
+    nl();
 
     bool should_close = false;
 
@@ -223,12 +213,8 @@ int main(int argc, char **argv) {
                 SWITCH_MOVE
                 // escape
                 case 27:
-                    clear_region(b);
-                    b->mode = NORMAL_MODE;
-                    break;
                 case ' ':
-                    // @cleanup not used right now
-                    end_region(b);
+                    clear_region(b);
                     b->mode = NORMAL_MODE;
                     break;
                 case 'd':
@@ -265,7 +251,7 @@ int main(int argc, char **argv) {
 #undef SWITCH_MOVE
     }
 
-    render_end();
+    endwin();
 
     for (int i = 0; i < argc - 1; ++i) {
         buf_kill(buf_list[i]);
