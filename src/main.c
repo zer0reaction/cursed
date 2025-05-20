@@ -4,7 +4,7 @@
 #include <locale.h>
 #include <assert.h>
 
-// idk where the header is
+// @cleanup find the header
 int mvaddwstr(int y, int x, const wchar_t *wstr);
 
 #include "config.h"
@@ -17,6 +17,7 @@ char kill_buffer[KILL_BUFFER_SIZE] = {0};
 #define HEIGHT (LINES - 1)
 #define WIDTH (COLS)
 
+// @cleanup move to main
 void render_init(void) {
     initscr();
     noecho();
@@ -24,10 +25,12 @@ void render_init(void) {
     nl();
 }
 
+// @cleanup move to main
 void render_end(void) {
     endwin();
 }
 
+// @feat make this better
 void render(Buffer *b) {
     curs_set(0);
 
@@ -69,6 +72,7 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "");
 
+    // @feat add support for more than 4 buffers
     Buffer *b = NULL;
     Buffer *buf_list[4] = {0};
 
@@ -82,12 +86,13 @@ int main(int argc, char **argv) {
     bool should_close = false;
 
     while (!should_close) {
-        adjust_offset(b, HEIGHT); // TODO this should be in move_*
+        // @refactor this should be in moves?
+        adjust_offset(b, HEIGHT);
 
         render(b);
         int c = getch();
 
-// TODO is there a way to do this better?
+// @refactor this macro isn't the best idea
 #define SWITCH_MOVE \
         case 'j': \
             move_down(b); \
@@ -139,7 +144,8 @@ int main(int argc, char **argv) {
             switch (c) {
                 SWITCH_MOVE
                 case 'q':
-                    // TODO check for all buffers to be saved
+                    // @feat check for all buffers to be saved
+                    //       before closing editor
                     if (b->saved) should_close = true;
                     break;
                 case 'Q':
@@ -221,7 +227,7 @@ int main(int argc, char **argv) {
                     b->mode = NORMAL_MODE;
                     break;
                 case ' ':
-                    // TODO not used right now
+                    // @cleanup not used right now
                     end_region(b);
                     b->mode = NORMAL_MODE;
                     break;

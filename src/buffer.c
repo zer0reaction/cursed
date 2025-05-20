@@ -49,11 +49,11 @@ Buffer *buf_create_empty(const char *path) {
     return b;
 }
 
+// @refactor is fopen the right way to do this?
+// @feat add backup files
 Buffer *buf_open(const char *path) {
-    // TODO is fopen the right way to do this?
-    //      and is this function abstraction even good?
-
     FILE *fp = fopen(path, "r");
+
     if (fp == NULL) {
         return buf_create_empty(path);
     } else {
@@ -62,6 +62,7 @@ Buffer *buf_open(const char *path) {
     }
 }
 
+// @feat add backup files
 void buf_save(Buffer *b) {
     append_newline_maybe(b);
 

@@ -9,6 +9,8 @@ enum Buffer_Mode {
 };
 typedef enum Buffer_Mode Buffer_Mode;
 
+// @perf add cur_line not to calculate it every update
+// @feat add minibuf
 typedef struct Buffer Buffer;
 struct Buffer {
     Buffer_Mode mode;

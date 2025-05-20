@@ -37,13 +37,13 @@ void move_left(Buffer *b) {
     }
 }
 
-// TODO rename
+// @refactor rename
 void move_line_left(Buffer *b) {
     b->col = b->col_max = 0;
 }
 
+// @perf macro is not efficient
 void move_forward(Buffer *b) {
-    // TODO not very efficient
     #define CHAR_AT_CUR(pos) (b->data[get_current_pos(b)])
 
     char c = CHAR_AT_CUR();
@@ -69,8 +69,8 @@ void move_forward(Buffer *b) {
     #undef CHAR_AT_CUR
 }
 
+// @perf macro is not efficient
 void move_backward(Buffer *b) {
-    // TODO not very efficient
     #define CHAR_BEFORE_CUR(void) (b->data[get_current_pos(b) - 1])
 
     if (b->line == 0 && b->col == 0) return;
@@ -114,7 +114,7 @@ void move_line_end(Buffer *b) {
     b->col = b->col_max = len;
 }
 
-// TODO rename
+// @refactor rename
 void move_screen_down(Buffer *b, int screen_height) {
     int n = screen_height / 2;
     int pos = b->line + n;
@@ -122,7 +122,7 @@ void move_screen_down(Buffer *b, int screen_height) {
     adjust_col(b);
 }
 
-// TODO rename
+// @refactor rename
 void move_screen_up(Buffer *b, int screen_height) {
     int n = screen_height / 2;
     int pos = b->line - n;
@@ -130,7 +130,7 @@ void move_screen_up(Buffer *b, int screen_height) {
     adjust_col(b);
 }
 
-// TODO rename
+// @refactor rename
 void move_screen_center(Buffer *b, int screen_height) {
     int off = b->line - (screen_height / 2);
     b->line_off = (off >= 0) ? off : 0;
@@ -255,7 +255,7 @@ void kill_region(Buffer *b) {
     strncat(kill_buffer, b->reg_begin, reg_len);
     erase_substr(b, b->reg_begin - b->data, reg_len);
 
-    // TODO is this stupid?
+    // @refactor maybe do this differently
     b->line = b->reg_begin_line;
     b->col = b->col_max = b->reg_begin_col;
 
