@@ -156,7 +156,9 @@ int main(int argc, char **argv) {
                 case 'd':
                     kill_line(b);
                     break;
-                // @feat add x for deleting line
+                case 'x':
+                    delete_line(b);
+                    break;
                 case 'r':
                     clear_killed();
                     break;

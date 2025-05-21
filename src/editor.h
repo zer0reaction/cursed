@@ -21,6 +21,7 @@ void insert_char(Buffer *b, char c);
 void delete_char(Buffer *b);
 void clear_killed(void);
 void kill_line(Buffer *b);
+void delete_line(Buffer *b);
 void clear_region(Buffer *b);
 void begin_region(Buffer *b);
 void end_region(Buffer *b);

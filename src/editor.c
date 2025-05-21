@@ -229,6 +229,19 @@ void kill_line(Buffer *b) {
     adjust_offset(b);
 }
 
+void delete_line(Buffer *b) {
+    char *cur_line = line_goto(b->data, b->line);
+    int size = line_size(cur_line);
+    int pos = cur_line - b->data;
+    int killed = (cur_line[size] != '\0') ? size + 1 : size;
+
+    erase_substr(b, pos, killed);
+
+    b->saved = false;
+    adjust_col(b);
+    adjust_offset(b);
+}
+
 void clear_region(Buffer *b) {
     b->reg_begin = b->reg_end = NULL;
     b->reg_begin_line = b->reg_begin_col = 0;
