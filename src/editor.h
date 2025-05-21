@@ -26,6 +26,7 @@ void begin_region(Buffer *b);
 void end_region(Buffer *b);
 void kill_region(Buffer *b);
 void copy_region(Buffer *b);
+void delete_region(Buffer *b);
 void paste(Buffer *b);
 
 #endif // EDITOR_H_

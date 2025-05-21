@@ -233,6 +233,11 @@ int main(int argc, char **argv) {
                     kill_region(b);
                     b->mode = NORMAL_MODE;
                     break;
+                case 'x':
+                    end_region(b);
+                    delete_region(b);
+                    b->mode = NORMAL_MODE;
+                    break;
                 case 'c':
                     end_region(b);
                     copy_region(b);

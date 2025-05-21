@@ -270,6 +270,20 @@ void copy_region(Buffer *b) {
     strncat(kill_buffer, b->reg_begin, reg_len);
 }
 
+void delete_region(Buffer *b) {
+    if (b->reg_begin == b->reg_end) return;
+
+    int reg_len = b->reg_end - b->reg_begin;
+
+    erase_substr(b, b->reg_begin - b->data, reg_len);
+
+    // @refactor maybe do this differently
+    b->line = b->reg_begin_line;
+    b->col = b->col_max = b->reg_begin_col;
+
+    b->saved = false;
+}
+
 void paste(Buffer *b) {
     int len = strlen(kill_buffer);
     size_t pos = get_current_pos(b);
