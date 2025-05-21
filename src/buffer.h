@@ -26,10 +26,6 @@ struct Buffer {
     bool saved;
 };
 
-// @cleanup move functionality into buf_open
-Buffer *buf_create_from_file(const char *path, int width, int height);
-Buffer *buf_create_empty(const char *path, int width, int height);
-
 Buffer *buf_open(const char *path, int width, int height);
 void buf_set_dimensions(Buffer *b, int width, int height);
 void buf_save(Buffer *b);
