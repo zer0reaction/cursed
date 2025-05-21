@@ -12,6 +12,7 @@ void move_down(Buffer *b) {
         b->line++;
         adjust_col(b);
     }
+    adjust_offset(b);
 }
 
 void move_up(Buffer *b) {
@@ -19,6 +20,7 @@ void move_up(Buffer *b) {
         b->line--;
         adjust_col(b);
     }
+    adjust_offset(b);
 }
 
 void move_right(Buffer *b) {
@@ -115,24 +117,26 @@ void move_line_end(Buffer *b) {
 }
 
 // @refactor rename
-void move_screen_down(Buffer *b, int screen_height) {
-    int n = screen_height / 2;
+void move_screen_down(Buffer *b) {
+    int n = b->height / 2;
     int pos = b->line + n;
     b->line = (pos > line_count(b->data) - 1) ? line_count(b->data) - 1: pos;
     adjust_col(b);
+    adjust_offset(b);
 }
 
 // @refactor rename
-void move_screen_up(Buffer *b, int screen_height) {
-    int n = screen_height / 2;
+void move_screen_up(Buffer *b) {
+    int n = b->height / 2;
     int pos = b->line - n;
     b->line = (pos >= 0) ? pos : 0;
     adjust_col(b);
+    adjust_offset(b);
 }
 
 // @refactor rename
-void move_screen_center(Buffer *b, int screen_height) {
-    int off = b->line - (screen_height / 2);
+void move_screen_center(Buffer *b) {
+    int off = b->line - (b->height / 2);
     b->line_off = (off >= 0) ? off : 0;
     adjust_col(b);
 }
@@ -140,11 +144,13 @@ void move_screen_center(Buffer *b, int screen_height) {
 void move_top(Buffer *b) {
     b->line = 0;
     adjust_col(b);
+    adjust_offset(b);
 }
 
 void move_bot(Buffer *b) {
     b->line = line_count(b->data) - 1;
     adjust_col(b);
+    adjust_offset(b);
 }
 
 void insert_char(Buffer *b, char c) {
@@ -167,6 +173,7 @@ void insert_char(Buffer *b, char c) {
         if (buf[0] == '\n') {
             b->col = b->col_max = 0;
             b->line++;
+            adjust_offset(b);
         } else {
             b->col++;
             b->col_max = b->col;
@@ -198,6 +205,7 @@ void delete_char(Buffer *b) {
     } else {
         b->col = b->col_max = prev_line_len;
         b->line--;
+        adjust_offset(b);
     }
 
     b->saved = false;
@@ -218,6 +226,7 @@ void kill_line(Buffer *b) {
 
     b->saved = false;
     adjust_col(b);
+    adjust_offset(b);
 }
 
 void clear_region(Buffer *b) {
@@ -260,6 +269,7 @@ void kill_region(Buffer *b) {
     b->col = b->col_max = b->reg_begin_col;
 
     b->saved = false;
+    adjust_offset(b);
 }
 
 void copy_region(Buffer *b) {
@@ -282,6 +292,7 @@ void delete_region(Buffer *b) {
     b->col = b->col_max = b->reg_begin_col;
 
     b->saved = false;
+    adjust_offset(b);
 }
 
 void paste(Buffer *b) {
@@ -306,4 +317,5 @@ void paste(Buffer *b) {
     }
 
     b->saved = false;
+    adjust_offset(b);
 }

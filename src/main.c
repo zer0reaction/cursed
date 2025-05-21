@@ -14,9 +14,6 @@ int mvaddwstr(int y, int x, const wchar_t *wstr);
 
 char kill_buffer[KILL_BUFFER_SIZE] = {0};
 
-#define HEIGHT (LINES - 1)
-#define WIDTH (COLS)
-
 // @feat make this better
 void render(Buffer *b) {
     curs_set(0);
@@ -59,26 +56,23 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "");
 
-    // @feat add support for more than 4 buffers
-    Buffer *b = NULL;
-    Buffer *buf_list[4] = {0};
-
-    for (int i = 0; i < argc - 1; ++i) {
-        buf_list[i] = buf_open(argv[i + 1]);
-    }
-    b = buf_list[0];
-
     initscr();
     noecho();
     cbreak();
     nl();
 
+    // @feat add support for more than 4 buffers
+    Buffer *b = NULL;
+    Buffer *buf_list[4] = {0};
+
+    for (int i = 0; i < argc - 1; ++i) {
+        buf_list[i] = buf_open(argv[i + 1], COLS, LINES - 1);
+    }
+    b = buf_list[0];
+
     bool should_close = false;
 
     while (!should_close) {
-        // @refactor this should be in moves?
-        adjust_offset(b, HEIGHT);
-
         render(b);
         int c = getch();
 
@@ -112,22 +106,22 @@ int main(int argc, char **argv) {
             move_line_left(b); \
             break; \
         case 'e': \
-            move_screen_center(b, HEIGHT); \
+            move_screen_center(b); \
             break; \
         case 'n': \
-            move_screen_down(b, HEIGHT); \
-            move_screen_center(b, HEIGHT); \
+            move_screen_down(b); \
+            move_screen_center(b); \
             break; \
         case 'p': \
-            move_screen_up(b, HEIGHT); \
-            move_screen_center(b, HEIGHT); \
+            move_screen_up(b); \
+            move_screen_center(b); \
             break; \
         case 'g': \
             move_top(b); \
             break; \
         case 'G': \
             move_bot(b); \
-            move_screen_center(b, HEIGHT); \
+            move_screen_center(b); \
             break;
 
         if (b->mode == NORMAL_MODE) {
@@ -162,6 +156,7 @@ int main(int argc, char **argv) {
                 case 'd':
                     kill_line(b);
                     break;
+                // @feat add x for deleting line
                 case 'r':
                     clear_killed();
                     break;

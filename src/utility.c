@@ -99,13 +99,13 @@ void adjust_col(Buffer *b) {
     }
 }
 
-void adjust_offset(Buffer *b, int screen_height) {
+void adjust_offset(Buffer *b) {
     int rel_line = b->line - b->line_off;
 
     if (rel_line < 0) {
         b->line_off += rel_line;
-    } else if (rel_line > (int)screen_height - 1) {
-        b->line_off += rel_line - (screen_height - 1);
+    } else if (rel_line > b->height - 1) {
+        b->line_off += rel_line - (b->height - 1);
     }
 }
 

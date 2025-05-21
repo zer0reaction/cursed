@@ -6,7 +6,7 @@
 #include "buffer.h"
 #include "utility.h"
 
-Buffer *buf_create_from_file(const char *path) {
+Buffer *buf_create_from_file(const char *path, int width, int height) {
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
         return NULL;
@@ -27,13 +27,16 @@ Buffer *buf_create_from_file(const char *path) {
     b->path = malloc(strlen(path) + 1);
     strcpy(b->path, path);
 
+    b->width = width;
+    b->height = height;
+
     b->saved = true;
 
     fclose(fp);
     return b;
 }
 
-Buffer *buf_create_empty(const char *path) {
+Buffer *buf_create_empty(const char *path, int width, int height) {
     Buffer *b = malloc(sizeof(Buffer));
     memset(b, 0, sizeof(Buffer));
 
@@ -44,6 +47,9 @@ Buffer *buf_create_empty(const char *path) {
     b->path = malloc(strlen(path) + 1);
     strcpy(b->path, path);
 
+    b->width = width;
+    b->height = height;
+
     b->saved = false;
 
     return b;
@@ -51,15 +57,20 @@ Buffer *buf_create_empty(const char *path) {
 
 // @refactor is fopen the right way to do this?
 // @feat add backup files
-Buffer *buf_open(const char *path) {
+Buffer *buf_open(const char *path, int width, int height) {
     FILE *fp = fopen(path, "r");
 
     if (fp == NULL) {
-        return buf_create_empty(path);
+        return buf_create_empty(path, width, height);
     } else {
         fclose(fp);
-        return buf_create_from_file(path);
+        return buf_create_from_file(path, width, height);
     }
+}
+
+void buf_set_dimensions(Buffer *b, int width, int height) {
+    b->width = width;
+    b->height = height;
 }
 
 // @feat add backup files

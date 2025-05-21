@@ -15,7 +15,7 @@ int line_size(char *line);
 int line_count(char *start);
 char *line_goto(char *start, int n);
 void adjust_col(Buffer *b);
-void adjust_offset(Buffer *b, int screen_height);
+void adjust_offset(Buffer *b);
 void insert_substr(Buffer *b, int pos, char *str, int len);
 void erase_substr(Buffer *b, int pos, int len);
 bool is_sep(char c);
