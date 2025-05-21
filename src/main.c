@@ -172,6 +172,17 @@ int main(int argc, char **argv) {
                     begin_region(b);
                     b->mode = REGION_MODE;
                     break;
+                case 'o':
+                    move_line_end(b);
+                    insert_char(b, '\n');
+                    b->mode = INSERT_MODE;
+                    break;
+                case 'O':
+                    move_line_left(b);
+                    insert_char(b, '\n');
+                    move_up(b);
+                    b->mode = INSERT_MODE;
+                    break;
                 // Ctrl+j
                 case 10:
                     b = (buf_list[0] != NULL) ? buf_list[0] : b;
