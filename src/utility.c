@@ -5,8 +5,6 @@
 #include "utility.h"
 #include "config.h"
 
-static char seps[] = SEPARATORS;
-
 size_t get_current_pos(Buffer *b) {
     char *ptr = line_goto(b->data, b->line);
     for (int i = 0; i < b->col; ++i) {
@@ -129,6 +127,8 @@ void erase_substr(Buffer *b, int pos, int len) {
 }
 
 bool is_sep(char c) {
+    char seps[] = SEPARATORS;
+
     for (int i = 0; i < (int)sizeof(seps); ++i) {
         if (c == seps[i]) return true;
     }
