@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC='gcc'
+CC='clang'
 CFLAGS='-Wall -Wextra -pedantic -std=c99 -fsanitize=address,undefined -pipe'
 #CFLAGS='-O2'
 LDFLAGS='-lncursesw'
