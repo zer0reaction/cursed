@@ -3,14 +3,9 @@
 #include <stdbool.h>
 
 #include "utility.h"
+#include "config.h"
 
-static char seps[] = {
-    '!', '"', '#', '$', '%', '&', '\'',
-    '(', ')', '*', '+', ',', '-', '.',
-    '/', ':', ';', '<', '=', '>', '?',
-    '@', '[', '\\', ']', '^', '_', '`',
-    '{', '|', '}', '~', ' '
-};
+static char seps[] = SEPARATORS;
 
 size_t get_current_pos(Buffer *b) {
     char *ptr = line_goto(b->data, b->line);
