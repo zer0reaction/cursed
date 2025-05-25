@@ -232,6 +232,24 @@ void move_left(Buffer *b)
     }
 }
 
+void move_top(Buffer *b)
+{
+    b->cursor = 0;
+    update_last_col(b);
+    adjust_row_offset(b);
+}
+
+void move_bot(Buffer *b)
+{
+    assert(b->lines.size > 0);
+    {
+        Line bottom_line = b->lines.items[b->lines.size - 1];
+        b->cursor = bottom_line.begin;
+        update_last_col(b);
+        adjust_row_offset(b);
+    }
+}
+
 /* render functions */
 
 void render(Buffer *b)
@@ -241,6 +259,7 @@ void render(Buffer *b)
     u32 cursor_col;
     Line cursor_line;
 
+    curs_set(0);
     erase();
 
     for (i = 0; i < (u32)LINES; ++i) {
@@ -262,6 +281,7 @@ void render(Buffer *b)
     cursor_col = b->cursor - cursor_line.begin;
 
     move(cursor_row - b->row_offset, cursor_col);
+    curs_set(1);
 }
 
 int main(int argc, char **argv)
@@ -300,6 +320,12 @@ int main(int argc, char **argv)
             break;
         case 'l':
             move_right(&b);
+            break;
+        case 'g':
+            move_top(&b);
+            break;
+        case 'G':
+            move_bot(&b);
             break;
         }
     }
