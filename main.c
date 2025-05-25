@@ -1,3 +1,5 @@
+#include <ncurses.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +75,47 @@ typedef struct Buffer {
     Lines lines;
 
     u32 cursor;
+    u32 row_offset;
+    u32 last_col;
 } Buffer;
+
+/* utility functions */
+
+u32 get_cursor_row(Buffer *b)
+{
+    u32 i;
+
+    assert(b->lines.size > 0);
+
+    for (i = 0; i < b->lines.size; ++i) {
+        Line line = b->lines.items[i];
+
+        if (b->cursor >= line.begin && b->cursor <= line.end) {
+            return i;
+        }
+    }
+
+    return b->lines.size - 1;
+}
+
+void adjust_row_offset(Buffer *b)
+{
+    u32 cursor_row = get_cursor_row(b);
+    s32 relative_row = (s32)cursor_row - (s32)b->row_offset;
+
+    if (relative_row < 0) {
+        b->row_offset += relative_row;
+    } else if (relative_row > LINES - 1) {
+        b->row_offset += relative_row - (LINES - 1);
+    }
+}
+
+void update_last_col(Buffer *b)
+{
+    u32 cursor_row = get_cursor_row(b);
+    Line cursor_line = b->lines.items[cursor_row];
+    b->last_col = b->cursor - cursor_line.begin;
+}
 
 /* line functions */
 
@@ -130,20 +172,139 @@ void buffer_kill(Buffer *b)
     free(b->lines.items);
 }
 
+/* editor functions */
+
+void move_down(Buffer *b)
+{
+    u32 cursor_row = get_cursor_row(b);
+
+    if (cursor_row < b->lines.size - 1) {
+        Line next_line = b->lines.items[cursor_row + 1];
+        u32 next_line_len = next_line.end - next_line.begin;
+        u32 cursor_col;
+
+        if (next_line_len < b->last_col) {
+            cursor_col = next_line_len;
+        } else {
+            cursor_col = b->last_col;
+        }
+
+        b->cursor = next_line.begin + cursor_col;
+        adjust_row_offset(b);
+    }
+}
+
+void move_up(Buffer *b)
+{
+    u32 cursor_row = get_cursor_row(b);
+
+    if (cursor_row > 0) {
+        Line prev_line = b->lines.items[cursor_row - 1];
+        u32 prev_line_len = prev_line.end - prev_line.begin;
+        u32 cursor_col;
+
+        if (prev_line_len < b->last_col) {
+            cursor_col = prev_line_len;
+        } else {
+            cursor_col = b->last_col;
+        }
+
+        b->cursor = prev_line.begin + cursor_col;
+        adjust_row_offset(b);
+    }
+}
+
+void move_right(Buffer *b)
+{
+    if (b->cursor < b->data.size) {
+        b->cursor++;
+        update_last_col(b);
+        adjust_row_offset(b);
+    }
+}
+
+void move_left(Buffer *b)
+{
+    if (b->cursor > 0) {
+        b->cursor--;
+        update_last_col(b);
+        adjust_row_offset(b);
+    }
+}
+
+/* render functions */
+
+void render(Buffer *b)
+{
+    u32 i, j;
+    u32 cursor_row;
+    u32 cursor_col;
+    Line cursor_line;
+
+    erase();
+
+    for (i = 0; i < (u32)LINES; ++i) {
+        if (i + b->row_offset >= b->lines.size) break;
+
+        {
+            Line line = b->lines.items[i + b->row_offset];
+
+            for (j = 0; j < line.end - line.begin; ++j) {
+                mvaddch(i, j, b->data.items[line.begin + j]);
+            }
+        }
+    }
+
+    refresh();
+
+    cursor_row = get_cursor_row(b);
+    cursor_line = b->lines.items[cursor_row];
+    cursor_col = b->cursor - cursor_line.begin;
+
+    move(cursor_row - b->row_offset, cursor_col);
+}
+
 int main(int argc, char **argv)
 {
-    u32 i;
+    bool should_close = false;
     Buffer b = {0};
 
     if (argc != 2) return 1;
 
     buffer_from_file(&b, argv[1]);
     if (!b.lines.size) return 1;
-    printf("%u line(s) loaded\n", b.lines.size);
 
-    printf("data size: %u, data capacity: %u\n", b.data.size, b.data.capacity);
-    printf("lines size: %u, lines capacity: %u\n", b.lines.size, b.lines.capacity);
+    initscr();
+    noecho();
+    nl();
+    cbreak();
 
+    while (!should_close) {
+        int c;
+
+        render(&b);
+
+        c = getch();
+        switch (c) {
+        case 'q':
+            should_close = true;
+            break;
+        case 'j':
+            move_down(&b);
+            break;
+        case 'k':
+            move_up(&b);
+            break;
+        case 'h':
+            move_left(&b);
+            break;
+        case 'l':
+            move_right(&b);
+            break;
+        }
+    }
+
+    endwin();
     buffer_kill(&b);
     return 0;
 }
