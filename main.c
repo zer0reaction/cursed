@@ -3,6 +3,47 @@
 #include <string.h>
 #include <assert.h>
 
+#define da_append(da, item)                                             \
+do {                                                                    \
+    assert((da)->size <= (da)->capacity);                               \
+                                                                        \
+    if ((da)->items == NULL) {                                          \
+        (da)->items = malloc(sizeof(*((da)->items)) * 1);               \
+        (da)->size = 0;                                                 \
+        (da)->capacity = 1;                                             \
+    } else if ((da)->size >= (da)->capacity) {                          \
+        (da)->capacity *= 2;                                            \
+        (da)->items = realloc((da)->items,                              \
+                              sizeof(*((da)->items)) * (da)->capacity); \
+    }                                                                   \
+                                                                        \
+    (da)->items[(da)->size] = (item);                                   \
+    (da)->size++;                                                       \
+} while (0)
+
+#define da_append_many(da, items, n)                                    \
+do {                                                                    \
+    u32 i;                                                              \
+                                                                        \
+    assert((da)->size <= (da)->capacity);                               \
+                                                                        \
+    if ((da)->items == NULL) {                                          \
+        (da)->items = malloc(sizeof(*((da)->items)) * (n));             \
+        (da)->size = 0;                                                 \
+        (da)->capacity = (n);                                           \
+    } else if ((da)->size + (n) >= (da)->capacity) {                    \
+        (da)->capacity = ((da)->size + (n)) * 2;                        \
+        (da)->items = realloc((da)->items,                              \
+                              sizeof(*((da)->items)) * (da)->capacity); \
+    }                                                                   \
+                                                                        \
+    for (i = 0; i < (n); ++i) {                                         \
+        (da)->items[(da)->size + i] = (items)[i];                       \
+    }                                                                   \
+} while (0)
+
+#define lines_append(lines, line) da_append(lines, line)
+
 typedef unsigned char u8;
 typedef char s8;
 typedef unsigned short int u16;
@@ -16,56 +57,44 @@ typedef struct Line {
 } Line;
 
 typedef struct Lines {
-    Line *data;
+    Line *items;
     u32 size;
     u32 capacity;
 } Lines;
 
-typedef struct Buffer {
-    char *data;
+typedef struct String_Builder {
+    char *items;
+    u32 size;
+    u32 capacity;
+} String_Builder;
 
+typedef struct Buffer {
+    String_Builder data;
     Lines lines;
+
+    u32 cursor;
 } Buffer;
 
 /* line functions */
 
-void lines_append(Lines *lines, const Line line)
-{
-    if (lines->data == NULL) {
-        lines->data = malloc(sizeof(Line) * 1);
-        lines->data[0] = line;
-        lines->size = 1;
-        lines->capacity = 1;
-    } else if (lines->size < lines->capacity) {
-        lines->data[lines->size] = line;
-        lines->size++;
-    } else if (lines->size == lines->capacity) {
-        lines->capacity *= 2;
-        lines->data = realloc(lines->data, sizeof(Line) * lines->capacity);
-        lines->data[lines->size] = line;
-        lines->size++;
-    } else assert("lines_append" && 0);
-}
-
-void lines_retokenize(Lines *lines, const char *data)
+void lines_retokenize(Lines *lines, const char *data, u32 len)
 {
     u32 i = 0;
     Line line = {0};
 
     lines->size = 0;
 
-    while (1) {
-        if (data[i] == '\n' || data[i] == '\0') {
+    for (i = 0; i < len; ++i) {
+        if (data[i] == '\n') {
             line.end = i;
             lines_append(lines, line);
-
-            if (data[i] == '\0') break;
 
             line.begin = i + 1;
             line.end = 0;
         }
-        i++;
     }
+    line.end = i;
+    lines_append(lines, line);
 }
 
 /* buffer functions */
@@ -82,14 +111,14 @@ u32 buffer_from_file(Buffer *b, const char *path)
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    b->data = malloc(size + 1);
-    fread(b->data, 1, size, fp);
-    b->data[size] = '\0';
+    memset(b, 0, sizeof(Buffer));
 
-    b->lines.data = NULL;
-    b->lines.size = 0;
-    b->lines.capacity = 0;
-    lines_retokenize(&(b->lines), b->data);
+    b->data.items = malloc(size);
+    b->data.size = size;
+    b->data.capacity = size;
+    fread(b->data.items, 1, size, fp);
+
+    lines_retokenize(&(b->lines), b->data.items, b->data.size);
 
     fclose(fp);
     return b->lines.size;
@@ -97,8 +126,8 @@ u32 buffer_from_file(Buffer *b, const char *path)
 
 void buffer_kill(Buffer *b)
 {
-    free(b->data);
-    free(b->lines.data);
+    free(b->data.items);
+    free(b->lines.items);
 }
 
 int main(int argc, char **argv)
@@ -112,15 +141,8 @@ int main(int argc, char **argv)
     if (!b.lines.size) return 1;
     printf("%u line(s) loaded\n", b.lines.size);
 
-    for (i = 0; i < b.lines.size; ++i) {
-        u32 j;
-        Line cur_line = b.lines.data[i];
-
-        for (j = cur_line.begin; j < cur_line.end; ++j) {
-            putchar(b.data[j]);
-        }
-        putchar('\n');
-    }
+    printf("data size: %u, data capacity: %u\n", b.data.size, b.data.capacity);
+    printf("lines size: %u, lines capacity: %u\n", b.lines.size, b.lines.capacity);
 
     buffer_kill(&b);
     return 0;
