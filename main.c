@@ -5,46 +5,53 @@
 #include <string.h>
 #include <assert.h>
 
-#define da_append(da, item)                                             \
-do {                                                                    \
-    assert((da)->size <= (da)->capacity);                               \
-                                                                        \
-    if ((da)->items == NULL) {                                          \
-        (da)->items = malloc(sizeof(*((da)->items)) * 1);               \
-        (da)->size = 0;                                                 \
-        (da)->capacity = 1;                                             \
-    } else if ((da)->size >= (da)->capacity) {                          \
-        (da)->capacity *= 2;                                            \
-        (da)->items = realloc((da)->items,                              \
-                              sizeof(*((da)->items)) * (da)->capacity); \
-    }                                                                   \
-                                                                        \
-    (da)->items[(da)->size] = (item);                                   \
-    (da)->size++;                                                       \
+#define DA_INIT_CAP 64
+
+#define KEY_ESCAPE 27
+
+#define da_append(da, item)                                                \
+do {                                                                       \
+    assert((da)->size <= (da)->capacity);                                  \
+                                                                           \
+    if ((da)->capacity == 0) {                                             \
+        (da)->capacity = DA_INIT_CAP;                                      \
+        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
+        (da)->size = 0;                                                    \
+    } else if ((da)->size >= (da)->capacity) {                             \
+        (da)->capacity *= 2;                                               \
+        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
+    }                                                                      \
+                                                                           \
+    (da)->items[(da)->size] = (item);                                      \
+    (da)->size++;                                                          \
 } while (0)
 
-#define da_append_many(da, items, n)                                    \
-do {                                                                    \
-    u32 i;                                                              \
-                                                                        \
-    assert((da)->size <= (da)->capacity);                               \
-                                                                        \
-    if ((da)->items == NULL) {                                          \
-        (da)->items = malloc(sizeof(*((da)->items)) * (n));             \
-        (da)->size = 0;                                                 \
-        (da)->capacity = (n);                                           \
-    } else if ((da)->size + (n) >= (da)->capacity) {                    \
-        (da)->capacity = ((da)->size + (n)) * 2;                        \
-        (da)->items = realloc((da)->items,                              \
-                              sizeof(*((da)->items)) * (da)->capacity); \
-    }                                                                   \
-                                                                        \
-    for (i = 0; i < (n); ++i) {                                         \
-        (da)->items[(da)->size + i] = (items)[i];                       \
-    }                                                                   \
+#define da_insert(da, item, pos)                                           \
+do {                                                                       \
+    u32 i;                                                                 \
+                                                                           \
+    assert((da)->size <= (da)->capacity &&                                 \
+           (pos) <= (da)->size);                                           \
+                                                                           \
+    if ((da)->capacity == 0) {                                             \
+        (da)->capacity = DA_INIT_CAP;                                      \
+        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
+        (da)->size = 0;                                                    \
+    } else if ((da)->size >= (da)->capacity) {                             \
+        (da)->capacity *= 2;                                               \
+        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
+    }                                                                      \
+                                                                           \
+    (da)->size++;                                                          \
+                                                                           \
+    for (i = (da)->size - 1; i > (pos); --i) {                             \
+        (da)->items[i] = (da)->items[i - 1];                               \
+    }                                                                      \
+    (da)->items[pos] = (item);                                             \
 } while (0)
 
 #define lines_append(lines, line) da_append(lines, line)
+#define sb_insert_char(sb, c, pos) da_insert(sb, c, pos)
 
 typedef unsigned char u8;
 typedef char s8;
@@ -70,9 +77,15 @@ typedef struct String_Builder {
     u32 capacity;
 } String_Builder;
 
+typedef enum Mode {
+    NORMAL_MODE = 0,
+    INSERT_MODE = 1
+} Mode;
+
 typedef struct Buffer {
     String_Builder data;
     Lines lines;
+    Mode mode;
 
     u32 cursor;
     u32 row_offset;
@@ -119,15 +132,15 @@ void update_last_col(Buffer *b)
 
 /* line functions */
 
-void lines_retokenize(Lines *lines, const char *data, u32 len)
+void lines_retokenize(Lines *lines, String_Builder *sb)
 {
     u32 i = 0;
     Line line = {0};
 
     lines->size = 0;
 
-    for (i = 0; i < len; ++i) {
-        if (data[i] == '\n') {
+    for (i = 0; i < sb->size; ++i) {
+        if (sb->items[i] == '\n') {
             line.end = i;
             lines_append(lines, line);
 
@@ -155,12 +168,13 @@ u32 buffer_from_file(Buffer *b, const char *path)
 
     memset(b, 0, sizeof(Buffer));
 
+    /* @refactor change to sb_append_many */
     b->data.items = malloc(size);
     b->data.size = size;
     b->data.capacity = size;
     fread(b->data.items, 1, size, fp);
 
-    lines_retokenize(&(b->lines), b->data.items, b->data.size);
+    lines_retokenize(&(b->lines), &(b->data));
 
     fclose(fp);
     return b->lines.size;
@@ -250,6 +264,16 @@ void move_bot(Buffer *b)
     }
 }
 
+void insert_char_at_cursor(Buffer *b, char c)
+{
+    sb_insert_char(&(b->data), c, b->cursor);
+    b->cursor++;
+
+    lines_retokenize(&(b->lines), &(b->data));
+    update_last_col(b);
+    adjust_row_offset(b);
+}
+
 /* render functions */
 
 void render(Buffer *b)
@@ -284,6 +308,36 @@ void render(Buffer *b)
     curs_set(1);
 }
 
+bool process_movement(Buffer *b, int c)
+{
+    bool moved = true;
+
+    switch (c) {
+    case 'j':
+        move_down(b);
+        break;
+    case 'k':
+        move_up(b);
+        break;
+    case 'h':
+        move_left(b);
+        break;
+    case 'l':
+        move_right(b);
+        break;
+    case 'g':
+        move_top(b);
+        break;
+    case 'G':
+        move_bot(b);
+        break;
+    default:
+        moved = false;
+    }
+
+    return moved;
+}
+
 int main(int argc, char **argv)
 {
     bool should_close = false;
@@ -303,30 +357,28 @@ int main(int argc, char **argv)
         int c;
 
         render(&b);
-
         c = getch();
-        switch (c) {
-        case 'q':
-            should_close = true;
-            break;
-        case 'j':
-            move_down(&b);
-            break;
-        case 'k':
-            move_up(&b);
-            break;
-        case 'h':
-            move_left(&b);
-            break;
-        case 'l':
-            move_right(&b);
-            break;
-        case 'g':
-            move_top(&b);
-            break;
-        case 'G':
-            move_bot(&b);
-            break;
+
+        if (b.mode == NORMAL_MODE) {
+            if (process_movement(&b, c)) continue;
+
+            switch (c) {
+            case 'q':
+                should_close = true;
+                break;
+            case 'i':
+                b.mode = INSERT_MODE;
+                break;
+            }
+        } else if (b.mode == INSERT_MODE) {
+            switch (c) {
+            case KEY_ESCAPE:
+                b.mode = NORMAL_MODE;
+                break;
+            default:
+                insert_char_at_cursor(&b, c);
+                break;
+            }
         }
     }
 
