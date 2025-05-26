@@ -5,53 +5,44 @@
 #include <string.h>
 #include <assert.h>
 
-#define DA_INIT_CAP 64
+#define DA_INIT_CAP 128
 
 #define KEY_ESCAPE 27
 
-#define da_append(da, item)                                                \
-do {                                                                       \
-    assert((da)->size <= (da)->capacity);                                  \
-                                                                           \
-    if ((da)->capacity == 0) {                                             \
-        (da)->capacity = DA_INIT_CAP;                                      \
-        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
-        (da)->size = 0;                                                    \
-    } else if ((da)->size >= (da)->capacity) {                             \
-        (da)->capacity *= 2;                                               \
-        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
-    }                                                                      \
-                                                                           \
-    (da)->items[(da)->size] = (item);                                      \
-    (da)->size++;                                                          \
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+#define da_resize(da, new_size)                                                 \
+do {                                                                            \
+    assert((da)->size <= (da)->capacity);                                       \
+                                                                                \
+    if ((da)->capacity == 0) {                                                  \
+        (da)->capacity = MAX(DA_INIT_CAP, (new_size) * 2);                      \
+        (da)->items = realloc((da)->items,                                      \
+                              sizeof(*(da)->items) * (da)->capacity);           \
+        assert((da)->items && "Buy more RAM?");                                 \
+    } else if ((new_size) > (da)->capacity) {                                   \
+        (da)->capacity = (new_size) * 2;                                        \
+        (da)->items = realloc((da)->items,                                      \
+                              sizeof(*(da)->items) * (da)->capacity);           \
+        assert((da)->items && "Buy more RAM?");                                 \
+    } else if ((new_size) <= (da)->capacity / 4 && (new_size) >= DA_INIT_CAP) { \
+        (da)->capacity = (new_size) * 2;                                        \
+        (da)->items = realloc((da)->items,                                      \
+                              sizeof(*(da)->items) * (da)->capacity);           \
+        assert((da)->items && "Buy more RAM?");                                 \
+    }                                                                           \
+                                                                                \
+    (da)->size = (new_size);                                                    \
 } while (0)
 
-#define da_insert(da, item, pos)                                           \
+#define da_append(da, item)                                                \
 do {                                                                       \
-    u32 i;                                                                 \
-                                                                           \
-    assert((da)->size <= (da)->capacity &&                                 \
-           (pos) <= (da)->size);                                           \
-                                                                           \
-    if ((da)->capacity == 0) {                                             \
-        (da)->capacity = DA_INIT_CAP;                                      \
-        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
-        (da)->size = 0;                                                    \
-    } else if ((da)->size >= (da)->capacity) {                             \
-        (da)->capacity *= 2;                                               \
-        (da)->items = realloc((da)->items, sizeof(item) * (da)->capacity); \
-    }                                                                      \
-                                                                           \
-    (da)->size++;                                                          \
-                                                                           \
-    for (i = (da)->size - 1; i > (pos); --i) {                             \
-        (da)->items[i] = (da)->items[i - 1];                               \
-    }                                                                      \
-    (da)->items[pos] = (item);                                             \
+    da_resize((da), (da)->size + 1);                                       \
+    (da)->items[(da)->size - 1] = (item);                                  \
 } while (0)
 
 #define lines_append(lines, line) da_append(lines, line)
-#define sb_insert_char(sb, c, pos) da_insert(sb, c, pos)
+#define sb_resize(sb, new_size) da_resize(sb, new_size)
 
 typedef unsigned char u8;
 typedef char s8;
@@ -130,6 +121,16 @@ void update_last_col(Buffer *b)
     b->last_col = b->cursor - cursor_line.begin;
 }
 
+s8 char_size(char c)
+{
+    if      ((c & 0x80) == 0x00) return 1;
+    else if ((c & 0xC0) == 0x80) return 0;
+    else if ((c & 0xE0) == 0xC0) return 2;
+    else if ((c & 0xF0) == 0xE0) return 3;
+    else if ((c & 0xF8) == 0xF0) return 4;
+    else return -1;
+}
+
 /* line functions */
 
 void lines_retokenize(Lines *lines, String_Builder *sb)
@@ -168,10 +169,7 @@ u32 buffer_from_file(Buffer *b, const char *path)
 
     memset(b, 0, sizeof(Buffer));
 
-    /* @refactor change to sb_append_many */
-    b->data.items = malloc(size);
-    b->data.size = size;
-    b->data.capacity = size;
+    sb_resize(&b->data, size);
     fread(b->data.items, 1, size, fp);
 
     lines_retokenize(&b->lines, &b->data);
@@ -256,6 +254,7 @@ void move_top(Buffer *b)
 void move_bot(Buffer *b)
 {
     assert(b->lines.size > 0);
+
     {
         Line bottom_line = b->lines.items[b->lines.size - 1];
         b->cursor = bottom_line.begin;
@@ -266,12 +265,36 @@ void move_bot(Buffer *b)
 
 void insert_char_at_cursor(Buffer *b, char c)
 {
-    sb_insert_char(&b->data, c, b->cursor);
-    b->cursor++;
+    static u8 size = 0;
+    static u8 accum = 0;
+    static char buf[4] = {0};
 
-    lines_retokenize(&b->lines, &b->data);
-    update_last_col(b);
-    adjust_row_offset(b);
+    assert(char_size(c) != -1);
+
+    if (char_size(c) > 0) {
+        size = char_size(c);
+        accum = 0;
+        memset(buf, 0, 4);
+    }
+
+    buf[accum] = c;
+    accum++;
+
+    if (accum == size && accum != 0) {
+        sb_resize(&b->data, b->data.size + size);
+        memmove(&b->data.items[b->cursor + size],
+                &b->data.items[b->cursor],
+                b->data.size - b->cursor);
+        memcpy(&b->data.items[b->cursor], buf, size);
+
+        b->cursor += size;
+        lines_retokenize(&b->lines, &b->data);
+        update_last_col(b);
+
+        if (buf[0] == '\n') {
+            adjust_row_offset(b);
+        }
+    }
 }
 
 /* render functions */
