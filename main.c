@@ -174,7 +174,7 @@ u32 buffer_from_file(Buffer *b, const char *path)
     b->data.capacity = size;
     fread(b->data.items, 1, size, fp);
 
-    lines_retokenize(&(b->lines), &(b->data));
+    lines_retokenize(&b->lines, &b->data);
 
     fclose(fp);
     return b->lines.size;
@@ -266,10 +266,10 @@ void move_bot(Buffer *b)
 
 void insert_char_at_cursor(Buffer *b, char c)
 {
-    sb_insert_char(&(b->data), c, b->cursor);
+    sb_insert_char(&b->data, c, b->cursor);
     b->cursor++;
 
-    lines_retokenize(&(b->lines), &(b->data));
+    lines_retokenize(&b->lines, &b->data);
     update_last_col(b);
     adjust_row_offset(b);
 }
